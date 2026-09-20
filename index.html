@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <meta name="theme-color" content="#142338">
+  <title>مدرسة البلسم الثانوية — تسجيل الدخول</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+  <main class="login-shell">
+    <section class="login-card">
+      <img class="login-logo" src="/assets/logo.jpg" alt="شعار مدرسة البلسم الثانوية">
+      <h1>مرحباً بك مجدداً</h1>
+      <p class="lead">سجّل الدخول للوصول إلى حسابك ومتابعة رحلتك التعليمية</p>
+
+      <form id="loginForm" autocomplete="on">
+        <label>رقم الطالب</label>
+        <div class="input-wrap">
+          <input id="studentNo" name="username" placeholder="أدخل رقم الطالب" required>
+          <span>♙</span>
+        </div>
+
+        <label>كلمة المرور</label>
+        <div class="input-wrap">
+          <input id="password" name="password" type="password" placeholder="أدخل كلمة المرور" required>
+          <button class="eye" type="button" id="togglePassword">◉</button>
+        </div>
+
+        <div class="login-options">
+          <label class="remember"><input type="checkbox" id="remember"> تذكرني</label>
+          <button type="button" class="link-button" id="forgot">نسيت كلمة المرور؟</button>
+        </div>
+
+        <button class="primary-btn" type="submit">تسجيل الدخول <span>↪</span></button>
+      </form>
+
+      <div class="or"><i></i><span>أو تسجيل الدخول باستخدام</span><i></i></div>
+      <button class="school-login" id="schoolLogin">الدخول بحساب المدرسة <span>♢</span></button>
+
+      <div class="login-message" id="message"></div>
+    </section>
+
+    <footer class="login-footer">
+      <p>ليس لديك حساب؟</p>
+      <a id="whatsappLink" href="#" target="_blank" rel="noopener">تواصل مع إدارة المدرسة <span>◔</span></a>
+    </footer>
+  </main>
+  <script src="/js/login.js"></script>
+</body>
+</html>
