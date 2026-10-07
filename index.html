@@ -21,7 +21,9 @@
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- =====================================================
+     LOGIN SCREEN
+===================================================== -->
 
 <section id="loginScreen" class="screen login-screen">
 
@@ -29,17 +31,30 @@
 
     <div class="login-card">
 
+        <!-- الشعار الحقيقي -->
         <div class="brand-logo">
-            <img src="assets/logo.png" alt="شعار مدرسة البلسم">
+            <img
+                src="assets/logo.png"
+                alt="شعار مدرسة البلسم الثانوية"
+            >
         </div>
 
+        <!-- اسم المدرسة -->
         <div class="brand-title">
-            <h1>مدرسة البلسم الثانوية</h1>
-            <p>منصة التعليم الذكية</p>
+
+            <h1>
+                مدرسة البلسم الثانوية
+            </h1>
+
+            <p>
+                منصة التعليم الذكية
+            </p>
+
         </div>
 
         <div class="login-line"></div>
 
+        <!-- تسجيل الدخول -->
         <form id="loginForm">
 
             <label for="studentNumber">
@@ -84,17 +99,51 @@
                 id="loginButton"
                 class="primary-button login-button"
             >
-                <span>دخول إلى المنصة</span>
+                <span>
+                    دخول إلى المنصة
+                </span>
             </button>
 
             <div id="loginMessage" class="message"></div>
 
         </form>
 
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
         <div class="login-footer">
-            <span>مدرسة البلسم الثانوية</span>
-            <span>•</span>
-            <span>muzamiltaki</span>
+
+            <div class="support-links">
+
+                <a href="mailto:samiassadig@gmail.com">
+                    الدعم الفني
+                </a>
+
+                <span>•</span>
+
+                <a href="mailto:muzamiltaki893@gmail.com">
+                    الإشراف
+                </a>
+
+            </div>
+
+
+            <div class="copyright">
+
+                © 2026 مدرسة البلسم الثانوية
+                — جميع الحقوق محفوظة
+
+            </div>
+
+
+            <div class="creator">
+
+                muzamiltaki
+
+            </div>
+
         </div>
 
     </div>
@@ -102,11 +151,18 @@
 </section>
 
 
-<!-- ================= APP ================= -->
+<!-- =====================================================
+     MAIN APPLICATION
+===================================================== -->
 
-<section id="appScreen" class="screen app-screen hidden">
+<section
+    id="appScreen"
+    class="screen app-screen hidden"
+>
 
-    <!-- TOP BAR -->
+    <!-- =================================================
+         TOP BAR
+    ================================================== -->
 
     <header class="topbar">
 
@@ -114,30 +170,49 @@
 
             <img
                 src="assets/logo.png"
-                alt="شعار المدرسة"
+                alt="شعار مدرسة البلسم الثانوية"
             >
 
             <div>
-                <strong>مدرسة البلسم</strong>
-                <small>الثانوية</small>
+
+                <strong>
+                    مدرسة البلسم
+                </strong>
+
+                <small>
+                    الثانوية
+                </small>
+
             </div>
 
         </div>
 
-        <div id="studentChip" class="student-chip">
+
+        <!-- اسم الطالب -->
+        <div
+            id="studentChip"
+            class="student-chip"
+        >
             الطالب
         </div>
 
     </header>
 
 
-    <!-- MAIN CONTENT -->
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
 
-    <main id="appContent" class="app-content">
+    <main
+        id="appContent"
+        class="app-content"
+    >
     </main>
 
 
-    <!-- BOTTOM NAV -->
+    <!-- =================================================
+         BOTTOM NAVIGATION
+    ================================================== -->
 
     <nav class="bottom-nav">
 
@@ -145,32 +220,63 @@
             class="nav-button active"
             data-page="home"
         >
-            <span>⌂</span>
-            <small>الرئيسية</small>
+
+            <span>
+                ⌂
+            </span>
+
+            <small>
+                الرئيسية
+            </small>
+
         </button>
+
 
         <button
             class="nav-button"
             data-page="library"
         >
-            <span>▦</span>
-            <small>المكتبة</small>
+
+            <span>
+                ▦
+            </span>
+
+            <small>
+                المكتبة
+            </small>
+
         </button>
+
 
         <button
             class="nav-button"
             data-page="ranking"
         >
-            <span>♛</span>
-            <small>الترتيب</small>
+
+            <span>
+                ♛
+            </span>
+
+            <small>
+                الترتيب
+            </small>
+
         </button>
+
 
         <button
             class="nav-button"
             data-page="profile"
         >
-            <span>◉</span>
-            <small>ملفي</small>
+
+            <span>
+                ◉
+            </span>
+
+            <small>
+                ملفي
+            </small>
+
         </button>
 
     </nav>
@@ -178,7 +284,9 @@
 </section>
 
 
-<!-- ================= SUPABASE ================= -->
+<!-- =====================================================
+     SUPABASE
+===================================================== -->
 
 <script src="config.js"></script>
 
@@ -189,4 +297,4 @@
 <script src="app.js"></script>
 
 </body>
-  </html>
+            </html>
