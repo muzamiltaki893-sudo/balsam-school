@@ -19,11 +19,10 @@ const sb = window.supabase.createClient(
 
 /* =========================================================
    الحالة العامة
-   ========================================================= */
+========================================================= */
 
 const state = {
     student: null,
-
     subjects: [],
     posts: [],
     notice: null,
@@ -41,7 +40,7 @@ const state = {
 
 /* =========================================================
    عناصر الصفحة
-   ========================================================= */
+========================================================= */
 
 const loginScreen = document.getElementById("loginScreen");
 const appScreen = document.getElementById("appScreen");
@@ -63,7 +62,7 @@ const navButtons = document.querySelectorAll(".nav-button");
 
 /* =========================================================
    أدوات عامة
-   ========================================================= */
+========================================================= */
 
 function escapeHTML(value) {
     if (value === null || value === undefined) return "";
@@ -96,15 +95,14 @@ function setLoginLoading(loading) {
     loginButton.disabled = loading;
 
     loginButton.innerHTML = loading
-        ? "<span>جارٍ تسجيل الدخول...</span>"
-        : "<span>دخول إلى المنصة</span>";
-}
-
-
-function getInitial(name) {
-    if (!name) return "ط";
-
-    return String(name).trim().charAt(0);
+        ? `
+            <span>جارٍ تسجيل الدخول...</span>
+            <span class="button-loader"></span>
+          `
+        : `
+            <span>دخول إلى منصتي</span>
+            <span class="button-arrow">←</span>
+          `;
 }
 
 
@@ -136,8 +134,8 @@ function normalizeQuestion(question) {
 
 
 /* =========================================================
-   تحميل البيانات الثابتة
-   ========================================================= */
+   تحميل البيانات
+========================================================= */
 
 async function loadJSON(path) {
     const response = await fetch(path, {
@@ -164,15 +162,18 @@ async function loadStaticData() {
             loadJSON("data/notice.json")
         ]);
 
-        state.subjects = Array.isArray(subjects)
-            ? subjects
-            : [];
+        state.subjects =
+            Array.isArray(subjects)
+                ? subjects
+                : [];
 
-        state.posts = Array.isArray(posts)
-            ? posts
-            : [];
+        state.posts =
+            Array.isArray(posts)
+                ? posts
+                : [];
 
-        state.notice = notice || null;
+        state.notice =
+            notice || null;
 
     } catch (error) {
 
@@ -187,24 +188,33 @@ async function loadStaticData() {
 
 /* =========================================================
    تسجيل الدخول
-   ========================================================= */
+========================================================= */
 
-async function loginStudent(studentNumber, password) {
+async function loginStudent(
+    studentNumber,
+    password
+) {
 
-    const { data, error } = await sb.rpc(
-        "login_student",
-        {
-            p_student_number: studentNumber,
-            p_password: password
-        }
-    );
+    const { data, error } =
+        await sb.rpc(
+            "login_student",
+            {
+                p_student_number:
+                    studentNumber,
+
+                p_password:
+                    password
+            }
+        );
 
     if (error) {
         throw error;
     }
 
     if (!data || data.length === 0) {
-        throw new Error("رقم الطالب أو كلمة المرور غير صحيحة");
+        throw new Error(
+            "رقم الطالب أو كلمة المرور غير صحيحة"
+        );
     }
 
     return data[0];
@@ -222,6 +232,7 @@ async function handleLogin(event) {
         passwordInput.value.trim();
 
     if (!studentNumber || !password) {
+
         showLoginMessage(
             "يرجى إدخال رقم الطالب وكلمة المرور"
         );
@@ -230,7 +241,6 @@ async function handleLogin(event) {
     }
 
     setLoginLoading(true);
-
     showLoginMessage("", "");
 
     try {
@@ -267,15 +277,17 @@ async function handleLogin(event) {
 
 
 /* =========================================================
-   الجلسة المحلية
-   ========================================================= */
+   الجلسة
+========================================================= */
 
 function loadSavedStudent() {
 
     try {
 
         const saved =
-            localStorage.getItem("balsam_student");
+            localStorage.getItem(
+                "balsam_student"
+            );
 
         if (!saved) return null;
 
@@ -296,6 +308,10 @@ function loadSavedStudent() {
 
 function logout() {
 
+    clearInterval(
+        state.quiz?.timer
+    );
+
     state.student = null;
     state.quiz = null;
 
@@ -309,7 +325,7 @@ function logout() {
 
 /* =========================================================
    تشغيل التطبيق
-   ========================================================= */
+========================================================= */
 
 async function startApplication() {
 
@@ -326,7 +342,9 @@ async function startApplication() {
 
 function updateStudentChip() {
 
-    if (!studentChip || !state.student) return;
+    if (!studentChip || !state.student) {
+        return;
+    }
 
     studentChip.textContent =
         state.student.name || "الطالب";
@@ -335,7 +353,7 @@ function updateStudentChip() {
 
 /* =========================================================
    التنقل
-   ========================================================= */
+========================================================= */
 
 function setActiveNav(page) {
 
@@ -351,6 +369,10 @@ function setActiveNav(page) {
 
 
 function renderPage(page) {
+
+    if (state.quiz && page !== "home") {
+        clearInterval(state.quiz.timer);
+    }
 
     state.page = page;
 
@@ -373,14 +395,13 @@ function renderPage(page) {
 
     if (page === "profile") {
         renderProfile();
-        return;
     }
 }
 
 
 /* =========================================================
    الرئيسية
-   ========================================================= */
+========================================================= */
 
 function renderHome() {
 
@@ -391,9 +412,16 @@ function renderHome() {
         state.notice.enabled !== false
             ? `
                 <section class="notice-card">
-                    <div class="notice-icon">!</div>
 
-                    <div>
+                    <div class="notice-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 3a6 6 0 0 0-6 6v3.5L4 16h16l-2-3.5V9a6 6 0 0 0-6-6Z"/>
+                            <path d="M9.5 19a3 3 0 0 0 5 0"/>
+                        </svg>
+                    </div>
+
+                    <div class="notice-content">
+
                         <div class="notice-label">
                             إعلان مهم
                         </div>
@@ -409,7 +437,9 @@ function renderHome() {
                                 state.notice.text || ""
                             )}
                         </p>
+
                     </div>
+
                 </section>
             `
             : "";
@@ -417,21 +447,17 @@ function renderHome() {
 
     const postsHTML =
         state.posts.length > 0
-
             ? state.posts.map(post => `
                 <article class="post-card">
 
                     <div class="post-header">
 
-                        <div class="post-avatar">
-                            ${escapeHTML(
-                                getInitial(
-                                    post.author || "م"
-                                )
-                            )}
+                        <div class="post-avatar post-avatar-signal">
+                            <span></span>
                         </div>
 
-                        <div>
+                        <div class="post-author">
+
                             <strong>
                                 ${escapeHTML(
                                     post.author ||
@@ -444,6 +470,7 @@ function renderHome() {
                                     post.date || ""
                                 )}
                             </small>
+
                         </div>
 
                     </div>
@@ -452,67 +479,118 @@ function renderHome() {
                         post.title
                             ? `
                                 <h3 class="post-title">
-                                    ${escapeHTML(post.title)}
+                                    ${escapeHTML(
+                                        post.title
+                                    )}
                                 </h3>
                             `
                             : ""
                     }
 
                     <p class="post-text">
-                        ${escapeHTML(post.text || "")}
+                        ${escapeHTML(
+                            post.text || ""
+                        )}
                     </p>
 
                 </article>
             `).join("")
-
             : `
                 <div class="empty-card">
-                    لا توجد منشورات حالياً.
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M6 4h12v16H6z"/>
+                            <path d="M9 8h6M9 12h6M9 16h4"/>
+                        </svg>
+                    </div>
+
+                    <strong>
+                        لا توجد منشورات حالياً
+                    </strong>
+
+                    <span>
+                        ستظهر هنا أخبار وإعلانات المدرسة.
+                    </span>
                 </div>
             `;
 
 
     appContent.innerHTML = `
 
-        <div class="page-container">
+        <div class="page-container home-page">
 
             <section class="hero">
 
-                <div class="hero-student">
+                <div class="hero-content">
 
-                    <div class="student-avatar">
-                        ${escapeHTML(
-                            getInitial(student.name)
-                        )}
+                    <div class="hero-kicker">
+                        <span></span>
+                        مساحتك التعليمية
                     </div>
 
-                    <div>
-
-                        <h2>
-                            أهلاً،
-                            ${escapeHTML(student.name)}
-                        </h2>
-
-                        <p>
+                    <h2>
+                        أهلاً بك،
+                        <span>
                             ${escapeHTML(
-                                student.specialization ||
-                                "طالب"
+                                student.name
                             )}
-                        </p>
+                        </span>
+                    </h2>
+
+                    <p>
+                        ${escapeHTML(
+                            student.specialization ||
+                            "رحلتك التعليمية تبدأ من هنا."
+                        )}
+                    </p>
+
+                    <div class="hero-actions">
+
+                        <button
+                            class="hero-library-button"
+                            data-action="open-library"
+                        >
+                            <span class="button-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M5 4h11a3 3 0 0 1 3 3v13H7a2 2 0 0 1-2-2z"/>
+                                    <path d="M5 18a2 2 0 0 1 2-2h12"/>
+                                    <path d="M9 8h6M9 11h6"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                الذهاب إلى المكتبة
+                            </span>
+
+                            <b>←</b>
+                        </button>
 
                     </div>
 
                 </div>
 
+
                 <div class="hero-points">
 
-                    <span>
-                        نقاطك
-                    </span>
+                    <div class="points-orbit">
+                        <div class="points-core">
+                            <span>نقاطك</span>
+                            <strong>
+                                ${formatNumber(
+                                    student.points
+                                )}
+                            </strong>
+                        </div>
+                    </div>
 
-                    <strong>
-                        ${formatNumber(student.points)}
-                    </strong>
+                    <div class="hero-level">
+                        المستوى
+                        <strong>
+                            ${formatNumber(
+                                student.level
+                            )}
+                        </strong>
+                    </div>
 
                 </div>
 
@@ -522,46 +600,22 @@ function renderHome() {
             ${noticeHTML}
 
 
-            <button
-                class="library-main-button"
-                data-action="open-library"
-            >
-
-                <div class="library-main-icon">
-                    ▦
-                </div>
-
-                <div>
-
-                    <strong>
-                        المكتبة التعليمية
-                    </strong>
-
-                    <span>
-                        الكتب والاختبارات والمواد الدراسية
-                    </span>
-
-                </div>
-
-                <b>
-                    ←
-                </b>
-
-            </button>
-
-
             <section class="posts-section">
 
                 <div class="section-heading">
 
                     <div>
                         <span>
-                            آخر الأخبار
+                            المدرسة
                         </span>
 
                         <h2>
                             منشورات المدرسة
                         </h2>
+
+                        <p>
+                            آخر الأخبار والمعلومات المهمة
+                        </p>
                     </div>
 
                 </div>
@@ -579,7 +633,7 @@ function renderHome() {
 
 /* =========================================================
    المكتبة
-   ========================================================= */
+========================================================= */
 
 function renderLibrary() {
 
@@ -590,26 +644,30 @@ function renderLibrary() {
         {
             id: "basic",
             title: "المواد الأساسية",
-            description: "اللغة والرياضيات والمواد الأساسية",
-            icon: "◈"
+            description:
+                "اللغة والرياضيات والمواد الأساسية",
+            icon: "book"
         },
         {
             id: "scientific",
             title: "المواد العلمية",
-            description: "الفيزياء والكيمياء والأحياء والحاسوب",
-            icon: "◇"
+            description:
+                "الفيزياء والكيمياء والأحياء والحاسوب",
+            icon: "science"
         },
         {
             id: "literary",
             title: "المواد الأدبية",
-            description: "التاريخ والجغرافيا والدراسات الإسلامية",
-            icon: "▤"
+            description:
+                "التاريخ والجغرافيا والدراسات الإسلامية",
+            icon: "history"
         },
         {
             id: "foundation",
             title: "مواد التأسيس",
-            description: "مهارات ومعلومات تأسيسية",
-            icon: "✦"
+            description:
+                "مهارات ومعلومات تأسيسية",
+            icon: "spark"
         }
     ];
 
@@ -619,16 +677,17 @@ function renderLibrary() {
 
             <div class="page-heading">
 
-                <span>
-                    المكتبة
-                </span>
+                <div class="heading-label">
+                    مكتبتك
+                </div>
 
                 <h1>
                     المكتبة التعليمية
                 </h1>
 
                 <p>
-                    اختر القسم للوصول إلى الكتب والاختبارات.
+                    اختر المسار للوصول إلى الكتب والاختبارات
+                    والمواد الدراسية.
                 </p>
 
             </div>
@@ -644,10 +703,10 @@ function renderLibrary() {
                     >
 
                         <div class="category-icon">
-                            ${category.icon}
+                            ${getCategoryIcon(category.icon)}
                         </div>
 
-                        <div>
+                        <div class="category-content">
 
                             <h3>
                                 ${category.title}
@@ -671,6 +730,42 @@ function renderLibrary() {
 
         </div>
     `;
+}
+
+
+function getCategoryIcon(type) {
+
+    const icons = {
+
+        book: `
+            <svg viewBox="0 0 24 24">
+                <path d="M5 4h11a3 3 0 0 1 3 3v13H7a2 2 0 0 1-2-2z"/>
+                <path d="M5 18a2 2 0 0 1 2-2h12"/>
+            </svg>
+        `,
+
+        science: `
+            <svg viewBox="0 0 24 24">
+                <path d="M9 3v6l-5 9a2 2 0 0 0 1.7 3h12.6A2 2 0 0 0 20 18l-5-9V3"/>
+                <path d="M7 14h10M8 3h7"/>
+            </svg>
+        `,
+
+        history: `
+            <svg viewBox="0 0 24 24">
+                <path d="M4 19h16M6 19V7h12v12M8 7V4h8v3M9 11h6M9 14h6"/>
+            </svg>
+        `,
+
+        spark: `
+            <svg viewBox="0 0 24 24">
+                <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z"/>
+                <path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/>
+            </svg>
+        `
+    };
+
+    return icons[type] || icons.spark;
 }
 
 
@@ -706,17 +801,21 @@ function renderCategory(categoryId) {
                 class="back-button"
                 data-action="back-library"
             >
-                → المكتبة
+                <span>→</span>
+                المكتبة
             </button>
+
 
             <div class="page-heading">
 
-                <span>
-                    القسم
-                </span>
+                <div class="heading-label">
+                    القسم الدراسي
+                </div>
 
                 <h1>
-                    ${categoryNames[categoryId] || ""}
+                    ${escapeHTML(
+                        categoryNames[categoryId] || ""
+                    )}
                 </h1>
 
                 <p>
@@ -731,7 +830,8 @@ function renderCategory(categoryId) {
                     ? `
                         <div class="subjects-grid">
 
-                            ${subjects.map(subject => `
+                            ${subjects.map(
+                                (subject, index) => `
 
                                 <button
                                     class="subject-card"
@@ -743,7 +843,7 @@ function renderCategory(categoryId) {
                                     <div class="subject-number">
                                         ${escapeHTML(
                                             subject.number ||
-                                            ""
+                                            String(index + 1).padStart(2, "0")
                                         )}
                                     </div>
 
@@ -763,18 +863,18 @@ function renderCategory(categoryId) {
                                                     ? subject.parts.length
                                                     : 0
                                             }
-                                            أجزاء
+                                            أجزاء اختبارية
                                         </p>
 
                                     </div>
 
-                                    <span>
+                                    <span class="subject-arrow">
                                         ←
                                     </span>
 
                                 </button>
-
-                            `).join("")}
+                            `
+                            ).join("")}
 
                         </div>
                     `
@@ -792,12 +892,13 @@ function renderCategory(categoryId) {
 
 /* =========================================================
    صفحة المادة
-   ========================================================= */
+========================================================= */
 
 function getSubjectById(id) {
 
     return state.subjects.find(
-        subject => String(subject.id) === String(id)
+        subject =>
+            String(subject.id) === String(id)
     );
 }
 
@@ -831,14 +932,14 @@ function renderSubject(subjectId) {
                     <div class="book-info">
 
                         <div class="book-icon">
-                            PDF
+                            <span>PDF</span>
                         </div>
 
                         <div>
 
-                            <span>
-                                كتاب المادة
-                            </span>
+                            <div class="book-label">
+                                الكتاب الدراسي
+                            </div>
 
                             <h3>
                                 ${escapeHTML(
@@ -847,8 +948,8 @@ function renderSubject(subjectId) {
                             </h3>
 
                             <p>
-                                يمكنك فتح الكتاب أو تنزيله
-                                على هاتفك للدراسة دون اتصال.
+                                افتح الكتاب للقراءة أو
+                                نزّله للدراسة دون اتصال.
                             </p>
 
                         </div>
@@ -866,7 +967,12 @@ function renderSubject(subjectId) {
                             target="_blank"
                             rel="noopener"
                         >
-                            فتح كتاب المادة
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="2.5"/>
+                            </svg>
+
+                            فتح الكتاب
                         </a>
 
                         <a
@@ -876,13 +982,18 @@ function renderSubject(subjectId) {
                             )}"
                             download
                         >
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v12"/>
+                                <path d="m7 11 5 5 5-5"/>
+                                <path d="M4 20h16"/>
+                            </svg>
+
                             تنزيل PDF
                         </a>
 
                     </div>
 
                 </section>
-
             `
             : "";
 
@@ -895,7 +1006,8 @@ function renderSubject(subjectId) {
                 class="back-button"
                 data-action="back-category"
             >
-                → ${escapeHTML(
+                <span>→</span>
+                ${escapeHTML(
                     getCategoryName(
                         state.selectedCategory
                     )
@@ -905,12 +1017,14 @@ function renderSubject(subjectId) {
 
             <div class="page-heading">
 
-                <span>
-                    المادة
-                </span>
+                <div class="heading-label">
+                    المادة الدراسية
+                </div>
 
                 <h1>
-                    ${escapeHTML(subject.name)}
+                    ${escapeHTML(
+                        subject.name
+                    )}
                 </h1>
 
                 <p>
@@ -929,12 +1043,16 @@ function renderSubject(subjectId) {
 
                     <div>
                         <span>
-                            الاختبارات
+                            التدريب
                         </span>
 
                         <h2>
                             أجزاء المادة
                         </h2>
+
+                        <p>
+                            اختر الجزء لبدء الاختبار.
+                        </p>
                     </div>
 
                 </div>
@@ -942,7 +1060,6 @@ function renderSubject(subjectId) {
 
                 ${
                     parts.length
-
                         ? `
                             <div class="parts-list">
 
@@ -955,12 +1072,12 @@ function renderSubject(subjectId) {
                                     >
 
                                         <div class="part-number">
-                                            ${
+                                            ${String(
                                                 index + 1
-                                            }
+                                            ).padStart(2, "0")}
                                         </div>
 
-                                        <div>
+                                        <div class="part-info">
 
                                             <h3>
                                                 ${escapeHTML(
@@ -978,12 +1095,12 @@ function renderSubject(subjectId) {
 
                                         </div>
 
-                                        <span>
-                                            ابدأ ←
+                                        <span class="part-start">
+                                            ابدأ
+                                            <b>←</b>
                                         </span>
 
                                     </button>
-
                                 `
                                 ).join("")}
 
@@ -1017,19 +1134,8 @@ function getCategoryName(categoryId) {
 
 
 /* =========================================================
-   فتح الكتاب / التنزيل
-   =========================================================
-
-   ملاحظة:
-   يمكن للطالب تنزيل PDF إلى الهاتف باستخدام download.
-   إذا كان المتصفح لا يدعم التنزيل المباشر لملفات GitHub
-   فقد يفتح PDF أولاً، وهذا يعتمد على المتصفح.
-   */
-
-
-/* =========================================================
    الاختبارات
-   ========================================================= */
+========================================================= */
 
 async function startQuiz(subject, part) {
 
@@ -1047,9 +1153,10 @@ async function startQuiz(subject, part) {
         const questions =
             await loadJSON(part.file);
 
-        if (!Array.isArray(questions) ||
-            questions.length === 0) {
-
+        if (
+            !Array.isArray(questions) ||
+            questions.length === 0
+        ) {
             throw new Error(
                 "لا توجد أسئلة في هذا الاختبار."
             );
@@ -1065,13 +1172,17 @@ async function startQuiz(subject, part) {
             shuffleArray(normalized)
                 .slice(
                     0,
-                    Math.min(20, normalized.length)
+                    Math.min(
+                        20,
+                        normalized.length
+                    )
                 );
 
 
         state.quiz = {
 
-            subject: subject.name,
+            subject:
+                subject.name,
 
             part:
                 part.name ||
@@ -1080,24 +1191,34 @@ async function startQuiz(subject, part) {
             questions:
                 selectedQuestions,
 
-            current: 0,
+            current:
+                0,
 
             answers:
                 new Array(
                     selectedQuestions.length
                 ).fill(null),
 
-            selected: null,
+            selected:
+                null,
 
-            correct: 0,
+            currentOptions:
+                [],
 
-            wrong: 0,
+            correct:
+                0,
 
-            timeLeft: 600,
+            wrong:
+                0,
 
-            timer: null,
+            timeLeft:
+                600,
 
-            finished: false
+            timer:
+                null,
+
+            finished:
+                false
         };
 
 
@@ -1128,8 +1249,10 @@ function startQuizTimer() {
     state.quiz.timer =
         setInterval(() => {
 
-            if (!state.quiz ||
-                state.quiz.finished) {
+            if (
+                !state.quiz ||
+                state.quiz.finished
+            ) {
 
                 clearInterval(
                     state.quiz?.timer
@@ -1142,7 +1265,9 @@ function startQuizTimer() {
 
             updateQuizTimer();
 
-            if (state.quiz.timeLeft <= 0) {
+            if (
+                state.quiz.timeLeft <= 0
+            ) {
 
                 clearInterval(
                     state.quiz.timer
@@ -1189,7 +1314,6 @@ function renderQuiz() {
 
     if (!quiz) return;
 
-
     const question =
         quiz.questions[quiz.current];
 
@@ -1207,13 +1331,20 @@ function renderQuiz() {
             ...question.w
         ]);
 
+    quiz.currentOptions =
+        options;
 
-    quiz.currentOptions = options;
+
+    const progress =
+        (
+            (quiz.current + 1) /
+            quiz.questions.length
+        ) * 100;
 
 
     appContent.innerHTML = `
 
-        <div class="page-container quiz-container">
+        <div class="page-container quiz-page">
 
             <div class="quiz-top">
 
@@ -1224,10 +1355,7 @@ function renderQuiz() {
                     إنهاء الاختبار
                 </button>
 
-                <div
-                    id="quizTimer"
-                    class="quiz-timer"
-                >
+                <div class="quiz-timer" id="quizTimer">
                     ${formatTime(
                         quiz.timeLeft
                     )}
@@ -1238,26 +1366,26 @@ function renderQuiz() {
 
             <div class="quiz-progress">
 
-                <div>
-                    السؤال
-                    ${quiz.current + 1}
-                    من
-                    ${quiz.questions.length}
+                <div class="quiz-progress-head">
+
+                    <span>
+                        السؤال
+                        ${quiz.current + 1}
+                        من
+                        ${quiz.questions.length}
+                    </span>
+
+                    <strong>
+                        ${Math.round(progress)}%
+                    </strong>
+
                 </div>
 
                 <div class="progress-track">
 
                     <div
                         class="progress-fill"
-                        style="
-                            width:
-                            ${
-                                (
-                                    (quiz.current + 1) /
-                                    quiz.questions.length
-                                ) * 100
-                            }%
-                        "
+                        style="width:${progress}%"
                     ></div>
 
                 </div>
@@ -1266,6 +1394,20 @@ function renderQuiz() {
 
 
             <section class="question-card">
+
+                <div class="question-topline">
+                    <span>
+                        ${escapeHTML(
+                            quiz.subject
+                        )}
+                    </span>
+
+                    <small>
+                        ${escapeHTML(
+                            quiz.part
+                        )}
+                    </small>
+                </div>
 
                 <span class="question-label">
                     السؤال ${quiz.current + 1}
@@ -1288,16 +1430,16 @@ function renderQuiz() {
                             data-answer-index="${index}"
                         >
 
-                            <span>
-                                ${
-                                    String.fromCharCode(
-                                        65 + index
-                                    )
-                                }
+                            <span class="answer-letter">
+                                ${String.fromCharCode(
+                                    65 + index
+                                )}
                             </span>
 
                             <strong>
-                                ${escapeHTML(option)}
+                                ${escapeHTML(
+                                    option
+                                )}
                             </strong>
 
                         </button>
@@ -1316,11 +1458,11 @@ function renderQuiz() {
                 ${
                     quiz.current ===
                     quiz.questions.length - 1
-
                         ? "إنهاء الاختبار"
-
                         : "السؤال التالي"
                 }
+
+                <span>←</span>
             </button>
 
         </div>
@@ -1334,18 +1476,22 @@ function selectAnswer(index) {
 
     if (!state.quiz) return;
 
-    state.quiz.selected = index;
+    state.quiz.selected =
+        index;
 
     document
-        .querySelectorAll(".answer-button")
-        .forEach((button, buttonIndex) => {
+        .querySelectorAll(
+            ".answer-button"
+        )
+        .forEach(
+            (button, buttonIndex) => {
 
-            button.classList.toggle(
-                "selected",
-                buttonIndex === index
-            );
-
-        });
+                button.classList.toggle(
+                    "selected",
+                    buttonIndex === index
+                );
+            }
+        );
 }
 
 
@@ -1385,8 +1531,12 @@ function nextQuestion() {
     quiz.answers[
         quiz.current
     ] = {
-        selected: selectedAnswer,
-        correct: question.a,
+        selected:
+            selectedAnswer,
+
+        correct:
+            question.a,
+
         isCorrect
     };
 
@@ -1410,7 +1560,6 @@ function nextQuestion() {
 
 
     quiz.current++;
-
     quiz.selected = null;
 
     renderQuiz();
@@ -1454,12 +1603,14 @@ async function finishQuiz() {
     if (state.student) {
 
         state.student.points =
-            Number(state.student.points || 0) +
-            score;
+            Number(
+                state.student.points || 0
+            ) + score;
 
         state.student.tests_count =
-            Number(state.student.tests_count || 0) +
-            1;
+            Number(
+                state.student.tests_count || 0
+            ) + 1;
 
         state.student.correct_answers =
             Number(
@@ -1538,7 +1689,6 @@ async function saveResult(
 
 
         if (error) {
-
             console.error(
                 "Save result error:",
                 error
@@ -1565,7 +1715,10 @@ function renderQuizResult() {
     const percentage =
         total
             ? Math.round(
-                (quiz.correct / total) * 100
+                (
+                    quiz.correct /
+                    total
+                ) * 100
             )
             : 0;
 
@@ -1574,17 +1727,24 @@ function renderQuizResult() {
         "استمر في التعلم والتدريب.";
 
     if (percentage >= 90) {
+
         message =
             "ممتاز جداً! أداء رائع.";
+
     } else if (percentage >= 75) {
+
         message =
             "أداء ممتاز، واصل التقدم.";
+
     } else if (percentage >= 50) {
+
         message =
             "نتيجة جيدة، ويمكنك تحسينها أكثر.";
+
     } else {
+
         message =
-            "لا تستسلم، أعد المراجعة وحاول مرة أخرى.";
+            "لا تستسلم، راجع المادة وحاول مرة أخرى.";
     }
 
 
@@ -1595,10 +1755,14 @@ function renderQuizResult() {
             <section class="result-card">
 
                 <div class="result-icon">
-                    ${percentage >= 50 ? "✓" : "!"}
+                    ${
+                        percentage >= 50
+                            ? "✓"
+                            : "!"
+                    }
                 </div>
 
-                <span>
+                <span class="result-label">
                     نتيجة الاختبار
                 </span>
 
@@ -1655,6 +1819,7 @@ function renderQuizResult() {
                         data-action="back-subject"
                     >
                         العودة للمادة
+                        <span>←</span>
                     </button>
 
                     <button
@@ -1675,7 +1840,7 @@ function renderQuizResult() {
 
 /* =========================================================
    الترتيب
-   ========================================================= */
+========================================================= */
 
 async function renderRanking() {
 
@@ -1685,9 +1850,9 @@ async function renderRanking() {
 
             <div class="page-heading">
 
-                <span>
+                <div class="heading-label">
                     المنافسة
-                </span>
+                </div>
 
                 <h1>
                     ترتيب الطلاب
@@ -1702,6 +1867,7 @@ async function renderRanking() {
             <div class="ranking-card">
 
                 <div class="ranking-loading">
+                    <span class="loading-ring"></span>
                     جارٍ تحميل الترتيب...
                 </div>
 
@@ -1717,7 +1883,6 @@ async function renderRanking() {
             await sb.rpc(
                 "get_ranking"
             );
-
 
         if (error) {
             throw error;
@@ -1776,11 +1941,7 @@ async function renderRanking() {
                             </div>
 
                             <div class="ranking-avatar">
-                                ${escapeHTML(
-                                    getInitial(
-                                        student.name
-                                    )
-                                )}
+                                <span></span>
                             </div>
 
                             <div class="ranking-name">
@@ -1815,7 +1976,6 @@ async function renderRanking() {
                             </div>
 
                         </div>
-
                     `;
                 }
             ).join("");
@@ -1844,7 +2004,7 @@ async function renderRanking() {
 
 /* =========================================================
    الملف الشخصي
-   ========================================================= */
+========================================================= */
 
 function renderProfile() {
 
@@ -1853,8 +2013,12 @@ function renderProfile() {
 
 
     const totalAnswers =
-        Number(student.correct_answers || 0) +
-        Number(student.wrong_answers || 0);
+        Number(
+            student.correct_answers || 0
+        ) +
+        Number(
+            student.wrong_answers || 0
+        );
 
 
     const accuracy =
@@ -1874,36 +2038,49 @@ function renderProfile() {
 
         <div class="page-container">
 
-            <div class="profile-card">
+            <section class="profile-card">
 
-                <div class="profile-avatar">
-                    ${escapeHTML(
-                        getInitial(
-                            student.name
-                        )
-                    )}
+                <div class="profile-visual">
+
+                    <div class="profile-orbit">
+
+                        <div class="profile-core">
+                            <span></span>
+                        </div>
+
+                    </div>
+
                 </div>
 
 
-                <h1>
-                    ${escapeHTML(
-                        student.name
-                    )}
-                </h1>
+                <div class="profile-main">
 
-                <p>
-                    ${escapeHTML(
-                        student.specialization ||
-                        "طالب"
-                    )}
-                </p>
+                    <div class="heading-label">
+                        الملف الشخصي
+                    </div>
 
+                    <h1>
+                        ${escapeHTML(
+                            student.name
+                        )}
+                    </h1>
 
-                <div class="profile-number">
-                    رقم الطالب:
-                    ${escapeHTML(
-                        student.student_number
-                    )}
+                    <p>
+                        ${escapeHTML(
+                            student.specialization ||
+                            "طالب"
+                        )}
+                    </p>
+
+                    <div class="profile-number">
+                        رقم الطالب:
+                        <strong>
+                            ${escapeHTML(
+                                student.student_number
+                            )}
+                        </strong>
+                    </div>
+
                 </div>
 
 
@@ -1921,12 +2098,13 @@ function renderProfile() {
 
                 </div>
 
-            </div>
+            </section>
 
 
             <div class="stats-grid">
 
                 <div class="stat-card">
+                    <div class="stat-icon">✦</div>
 
                     <span>
                         النقاط
@@ -1937,11 +2115,11 @@ function renderProfile() {
                             student.points
                         )}
                     </strong>
-
                 </div>
 
 
                 <div class="stat-card">
+                    <div class="stat-icon">◷</div>
 
                     <span>
                         الاختبارات
@@ -1952,14 +2130,14 @@ function renderProfile() {
                             student.tests_count
                         )}
                     </strong>
-
                 </div>
 
 
                 <div class="stat-card">
+                    <div class="stat-icon">✓</div>
 
                     <span>
-                        الإجابات الصحيحة
+                        الصحيحة
                     </span>
 
                     <strong>
@@ -1967,11 +2145,11 @@ function renderProfile() {
                             student.correct_answers
                         )}
                     </strong>
-
                 </div>
 
 
                 <div class="stat-card">
+                    <div class="stat-icon">◎</div>
 
                     <span>
                         نسبة الدقة
@@ -1980,7 +2158,6 @@ function renderProfile() {
                     <strong>
                         ${accuracy}%
                     </strong>
-
                 </div>
 
             </div>
@@ -1991,7 +2168,6 @@ function renderProfile() {
                 <div class="section-heading">
 
                     <div>
-
                         <span>
                             ملاحظة
                         </span>
@@ -1999,7 +2175,6 @@ function renderProfile() {
                         <h2>
                             ملاحظتك الشخصية
                         </h2>
-
                     </div>
 
                 </div>
@@ -2021,7 +2196,13 @@ function renderProfile() {
                 class="logout-button"
                 data-action="logout"
             >
-                تسجيل الخروج
+                <span>تسجيل الخروج</span>
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/>
+                    <path d="M14 8l4 4-4 4"/>
+                    <path d="M18 12H9"/>
+                </svg>
             </button>
 
         </div>
@@ -2031,294 +2212,4 @@ function renderProfile() {
 
 /* =========================================================
    الأحداث
-   ========================================================= */
-
-if (loginForm) {
-    loginForm.addEventListener(
-        "submit",
-        handleLogin
-    );
-}
-
-
-if (togglePassword) {
-
-    togglePassword.addEventListener(
-        "click",
-        () => {
-
-            if (
-                passwordInput.type ===
-                "password"
-            ) {
-
-                passwordInput.type =
-                    "text";
-
-                togglePassword.textContent =
-                    "إخفاء";
-
-            } else {
-
-                passwordInput.type =
-                    "password";
-
-                togglePassword.textContent =
-                    "إظهار";
-            }
-        }
-    );
-}
-
-
-navButtons.forEach(button => {
-
-    button.addEventListener(
-        "click",
-        () => {
-
-            if (
-                button.dataset.page
-            ) {
-
-                renderPage(
-                    button.dataset.page
-                );
-            }
-        }
-    );
-});
-
-
-document.addEventListener(
-    "click",
-    event => {
-
-        const categoryButton =
-            event.target.closest(
-                "[data-category]"
-            );
-
-        if (categoryButton) {
-
-            renderCategory(
-                categoryButton.dataset.category
-            );
-
-            return;
-        }
-
-
-        const subjectButton =
-            event.target.closest(
-                "[data-subject-id]"
-            );
-
-        if (subjectButton) {
-
-            renderSubject(
-                subjectButton.dataset.subjectId
-            );
-
-            return;
-        }
-
-
-        const partButton =
-            event.target.closest(
-                "[data-part-index]"
-            );
-
-        if (partButton) {
-
-            if (!state.selectedSubject) {
-                return;
-            }
-
-            const index =
-                Number(
-                    partButton.dataset.partIndex
-                );
-
-            const part =
-                state.selectedSubject.parts[index];
-
-            startQuiz(
-                state.selectedSubject,
-                part
-            );
-
-            return;
-        }
-
-
-        const answerButton =
-            event.target.closest(
-                "[data-answer-index]"
-            );
-
-        if (answerButton) {
-
-            selectAnswer(
-                Number(
-                    answerButton.dataset.answerIndex
-                )
-            );
-
-            return;
-        }
-
-
-        const action =
-            event.target.closest(
-                "[data-action]"
-            );
-
-
-        if (!action) return;
-
-
-        const actionName =
-            action.dataset.action;
-
-
-        if (actionName === "open-library") {
-
-            renderPage("library");
-
-            return;
-        }
-
-
-        if (actionName === "back-library") {
-
-            renderPage("library");
-
-            return;
-        }
-
-
-        if (actionName === "back-category") {
-
-            if (state.selectedCategory) {
-
-                renderCategory(
-                    state.selectedCategory
-                );
-
-            } else {
-
-                renderLibrary();
-            }
-
-            return;
-        }
-
-
-        if (actionName === "next-question") {
-
-            nextQuestion();
-
-            return;
-        }
-
-
-        if (actionName === "exit-quiz") {
-
-            const confirmed =
-                confirm(
-                    "هل تريد إنهاء الاختبار؟ ستفقد تقدمك الحالي."
-                );
-
-            if (confirmed) {
-
-                clearInterval(
-                    state.quiz?.timer
-                );
-
-                state.quiz = null;
-
-                if (
-                    state.selectedSubject
-                ) {
-
-                    renderSubject(
-                        state.selectedSubject.id
-                    );
-
-                } else {
-
-                    renderPage("library");
-                }
-            }
-
-            return;
-        }
-
-
-        if (actionName === "back-subject") {
-
-            if (state.selectedSubject) {
-
-                renderSubject(
-                    state.selectedSubject.id
-                );
-
-            } else {
-
-                renderPage("library");
-            }
-
-            return;
-        }
-
-
-        if (actionName === "back-home") {
-
-            state.quiz = null;
-
-            renderPage("home");
-
-            return;
-        }
-
-
-        if (actionName === "logout") {
-
-            logout();
-
-            return;
-        }
-
-    }
-);
-
-
-/* =========================================================
-   بدء التطبيق
-   ========================================================= */
-
-(async function init() {
-
-    const savedStudent =
-        loadSavedStudent();
-
-    if (savedStudent) {
-
-        state.student =
-            savedStudent;
-
-        await startApplication();
-
-    } else {
-
-        loginScreen.classList.remove(
-            "hidden"
-        );
-
-        appScreen.classList.add(
-            "hidden"
-        );
-    }
-
-})();
+==================================================
