@@ -124,9 +124,9 @@ function shuffleArray(array) {
 
 function normalizeQuestion(question) {
     return {
-        q: question.q || "",
-        a: question.a || "",
-        w: Array.isArray(question.w)
+        q: question?.q || "",
+        a: question?.a || "",
+        w: Array.isArray(question?.w)
             ? question.w
             : []
     };
@@ -134,10 +134,11 @@ function normalizeQuestion(question) {
 
 
 /* =========================================================
-   تحميل البيانات
+   تحميل JSON
 ========================================================= */
 
 async function loadJSON(path) {
+
     const response = await fetch(path, {
         cache: "no-cache"
     });
@@ -151,7 +152,9 @@ async function loadJSON(path) {
 
 
 async function loadStaticData() {
+
     try {
+
         const [
             subjects,
             posts,
@@ -177,7 +180,7 @@ async function loadStaticData() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Static data error:", error);
 
         state.subjects = [];
         state.posts = [];
@@ -199,11 +202,8 @@ async function loginStudent(
         await sb.rpc(
             "login_student",
             {
-                p_student_number:
-                    studentNumber,
-
-                p_password:
-                    password
+                p_student_number: studentNumber,
+                p_password: password
             }
         );
 
@@ -308,9 +308,9 @@ function loadSavedStudent() {
 
 function logout() {
 
-    clearInterval(
-        state.quiz?.timer
-    );
+    if (state.quiz?.timer) {
+        clearInterval(state.quiz.timer);
+    }
 
     state.student = null;
     state.quiz = null;
@@ -329,8 +329,8 @@ function logout() {
 
 async function startApplication() {
 
-    loginScreen.classList.add("hidden");
-    appScreen.classList.remove("hidden");
+    loginScreen?.classList.add("hidden");
+    appScreen?.classList.remove("hidden");
 
     updateStudentChip();
 
@@ -345,6 +345,11 @@ function updateStudentChip() {
     if (!studentChip || !state.student) {
         return;
     }
+
+    /*
+       لا نستخدم أول حرف من الاسم كعنصر بصري.
+       نعرض الاسم فقط.
+    */
 
     studentChip.textContent =
         state.student.name || "الطالب";
@@ -405,7 +410,7 @@ function renderPage(page) {
 
 function renderHome() {
 
-    const student = state.student;
+    const student = state.student || {};
 
     const noticeHTML =
         state.notice &&
@@ -421,23 +426,17 @@ function renderHome() {
                     </div>
 
                     <div class="notice-content">
-
-                        <div class="notice-label">
+                        <span class="notice-label">
                             إعلان مهم
-                        </div>
+                        </span>
 
                         <h3>
-                            ${escapeHTML(
-                                state.notice.title || ""
-                            )}
+                            ${escapeHTML(state.notice.title || "")}
                         </h3>
 
                         <p>
-                            ${escapeHTML(
-                                state.notice.text || ""
-                            )}
+                            ${escapeHTML(state.notice.text || "")}
                         </p>
-
                     </div>
 
                 </section>
@@ -452,8 +451,12 @@ function renderHome() {
 
                     <div class="post-header">
 
-                        <div class="post-avatar post-avatar-signal">
-                            <span></span>
+                        <div class="post-avatar post-avatar-signal"
+                             aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 4a7 7 0 0 0-7 7v4l-2 3h18l-2-3v-4a7 7 0 0 0-7-7Z"/>
+                                <path d="M9.5 21h5"/>
+                            </svg>
                         </div>
 
                         <div class="post-author">
@@ -465,11 +468,15 @@ function renderHome() {
                                 )}
                             </strong>
 
-                            <small>
-                                ${escapeHTML(
-                                    post.date || ""
-                                )}
-                            </small>
+                            ${
+                                post.date
+                                    ? `
+                                        <small>
+                                            ${escapeHTML(post.date)}
+                                        </small>
+                                    `
+                                    : ""
+                            }
 
                         </div>
 
@@ -479,18 +486,14 @@ function renderHome() {
                         post.title
                             ? `
                                 <h3 class="post-title">
-                                    ${escapeHTML(
-                                        post.title
-                                    )}
+                                    ${escapeHTML(post.title)}
                                 </h3>
                             `
                             : ""
                     }
 
                     <p class="post-text">
-                        ${escapeHTML(
-                            post.text || ""
-                        )}
+                        ${escapeHTML(post.text || "")}
                     </p>
 
                 </article>
@@ -531,9 +534,7 @@ function renderHome() {
                     <h2>
                         أهلاً بك،
                         <span>
-                            ${escapeHTML(
-                                student.name
-                            )}
+                            ${escapeHTML(student.name || "الطالب")}
                         </span>
                     </h2>
 
@@ -573,22 +574,25 @@ function renderHome() {
                 <div class="hero-points">
 
                     <div class="points-orbit">
+
                         <div class="points-core">
-                            <span>نقاطك</span>
+
+                            <span>
+                                نقاطك
+                            </span>
+
                             <strong>
-                                ${formatNumber(
-                                    student.points
-                                )}
+                                ${formatNumber(student.points)}
                             </strong>
+
                         </div>
+
                     </div>
 
                     <div class="hero-level">
                         المستوى
                         <strong>
-                            ${formatNumber(
-                                student.level
-                            )}
+                            ${formatNumber(student.level)}
                         </strong>
                     </div>
 
@@ -673,9 +677,9 @@ function renderLibrary() {
 
     appContent.innerHTML = `
 
-        <div class="page-container">
+        <div class="page-container library-page">
 
-            <div class="page-heading">
+            <div class="page-heading library-heading">
 
                 <div class="heading-label">
                     مكتبتك
@@ -686,8 +690,7 @@ function renderLibrary() {
                 </h1>
 
                 <p>
-                    اختر المسار للوصول إلى الكتب والاختبارات
-                    والمواد الدراسية.
+                    كل المواد والكتب والاختبارات في مكان واحد.
                 </p>
 
             </div>
@@ -707,6 +710,10 @@ function renderLibrary() {
                         </div>
 
                         <div class="category-content">
+
+                            <span>
+                                القسم
+                            </span>
 
                             <h3>
                                 ${category.title}
@@ -835,9 +842,7 @@ function renderCategory(categoryId) {
 
                                 <button
                                     class="subject-card"
-                                    data-subject-id="${escapeHTML(
-                                        subject.id
-                                    )}"
+                                    data-subject-id="${escapeHTML(subject.id)}"
                                 >
 
                                     <div class="subject-number">
@@ -849,17 +854,17 @@ function renderCategory(categoryId) {
 
                                     <div class="subject-info">
 
+                                        <span>
+                                            مادة دراسية
+                                        </span>
+
                                         <h3>
-                                            ${escapeHTML(
-                                                subject.name
-                                            )}
+                                            ${escapeHTML(subject.name)}
                                         </h3>
 
                                         <p>
                                             ${
-                                                Array.isArray(
-                                                    subject.parts
-                                                )
+                                                Array.isArray(subject.parts)
                                                     ? subject.parts.length
                                                     : 0
                                             }
@@ -891,7 +896,7 @@ function renderCategory(categoryId) {
 
 
 /* =========================================================
-   صفحة المادة
+   المادة
 ========================================================= */
 
 function getSubjectById(id) {
@@ -909,9 +914,7 @@ function renderSubject(subjectId) {
         getSubjectById(subjectId);
 
     if (!subject) {
-
         renderLibrary();
-
         return;
     }
 
@@ -932,7 +935,10 @@ function renderSubject(subjectId) {
                     <div class="book-info">
 
                         <div class="book-icon">
-                            <span>PDF</span>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 4h10a3 3 0 0 1 3 3v13H7a2 2 0 0 1-2-2z"/>
+                                <path d="M5 18a2 2 0 0 1 2-2h13"/>
+                            </svg>
                         </div>
 
                         <div>
@@ -942,14 +948,11 @@ function renderSubject(subjectId) {
                             </div>
 
                             <h3>
-                                ${escapeHTML(
-                                    subject.name
-                                )}
+                                ${escapeHTML(subject.name)}
                             </h3>
 
                             <p>
-                                افتح الكتاب للقراءة أو
-                                نزّله للدراسة دون اتصال.
+                                افتح الكتاب داخل المتصفح أو نزّل نسخة PDF.
                             </p>
 
                         </div>
@@ -961,11 +964,9 @@ function renderSubject(subjectId) {
 
                         <a
                             class="primary-button book-button"
-                            href="${escapeHTML(
-                                subject.book
-                            )}"
+                            href="${escapeHTML(subject.book)}"
                             target="_blank"
-                            rel="noopener"
+                            rel="noopener noreferrer"
                         >
                             <svg viewBox="0 0 24 24">
                                 <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
@@ -977,9 +978,7 @@ function renderSubject(subjectId) {
 
                         <a
                             class="secondary-button book-button"
-                            href="${escapeHTML(
-                                subject.book
-                            )}"
+                            href="${escapeHTML(subject.book)}"
                             download
                         >
                             <svg viewBox="0 0 24 24">
@@ -1008,9 +1007,7 @@ function renderSubject(subjectId) {
             >
                 <span>→</span>
                 ${escapeHTML(
-                    getCategoryName(
-                        state.selectedCategory
-                    )
+                    getCategoryName(state.selectedCategory)
                 )}
             </button>
 
@@ -1022,9 +1019,7 @@ function renderSubject(subjectId) {
                 </div>
 
                 <h1>
-                    ${escapeHTML(
-                        subject.name
-                    )}
+                    ${escapeHTML(subject.name)}
                 </h1>
 
                 <p>
@@ -1072,12 +1067,14 @@ function renderSubject(subjectId) {
                                     >
 
                                         <div class="part-number">
-                                            ${String(
-                                                index + 1
-                                            ).padStart(2, "0")}
+                                            ${String(index + 1).padStart(2, "0")}
                                         </div>
 
                                         <div class="part-info">
+
+                                            <span>
+                                                اختبار تدريبي
+                                            </span>
 
                                             <h3>
                                                 ${escapeHTML(
@@ -1165,17 +1162,24 @@ async function startQuiz(subject, part) {
         const normalized =
             questions
                 .map(normalizeQuestion)
-                .filter(q => q.q && q.a);
+                .filter(question =>
+                    question.q &&
+                    question.a
+                );
+
+
+        if (!normalized.length) {
+            throw new Error(
+                "لا توجد أسئلة صالحة في هذا الاختبار."
+            );
+        }
 
 
         const selectedQuestions =
             shuffleArray(normalized)
                 .slice(
                     0,
-                    Math.min(
-                        20,
-                        normalized.length
-                    )
+                    Math.min(20, normalized.length)
                 );
 
 
@@ -1223,7 +1227,6 @@ async function startQuiz(subject, part) {
 
 
         renderQuiz();
-
         startQuizTimer();
 
     } catch (error) {
@@ -1242,9 +1245,7 @@ function startQuizTimer() {
 
     if (!state.quiz) return;
 
-    clearInterval(
-        state.quiz.timer
-    );
+    clearInterval(state.quiz.timer);
 
     state.quiz.timer =
         setInterval(() => {
@@ -1265,9 +1266,7 @@ function startQuizTimer() {
 
             updateQuizTimer();
 
-            if (
-                state.quiz.timeLeft <= 0
-            ) {
+            if (state.quiz.timeLeft <= 0) {
 
                 clearInterval(
                     state.quiz.timer
@@ -1283,26 +1282,25 @@ function startQuizTimer() {
 function updateQuizTimer() {
 
     const timer =
-        document.getElementById(
-            "quizTimer"
-        );
+        document.getElementById("quizTimer");
 
     if (!timer || !state.quiz) return;
 
     timer.textContent =
-        formatTime(
-            state.quiz.timeLeft
-        );
+        formatTime(state.quiz.timeLeft);
 }
 
 
 function formatTime(seconds) {
 
+    const safeSeconds =
+        Math.max(0, Number(seconds) || 0);
+
     const minutes =
-        Math.floor(seconds / 60);
+        Math.floor(safeSeconds / 60);
 
     const remaining =
-        seconds % 60;
+        safeSeconds % 60;
 
     return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
 }
@@ -1318,9 +1316,7 @@ function renderQuiz() {
         quiz.questions[quiz.current];
 
     if (!question) {
-
         finishQuiz();
-
         return;
     }
 
@@ -1336,10 +1332,8 @@ function renderQuiz() {
 
 
     const progress =
-        (
-            (quiz.current + 1) /
-            quiz.questions.length
-        ) * 100;
+        ((quiz.current + 1) /
+            quiz.questions.length) * 100;
 
 
     appContent.innerHTML = `
@@ -1349,16 +1343,18 @@ function renderQuiz() {
             <div class="quiz-top">
 
                 <button
-                    class="back-button"
+                    class="back-button quiz-exit-button"
                     data-action="exit-quiz"
                 >
                     إنهاء الاختبار
                 </button>
 
+                <div class="quiz-title-mini">
+                    اختبار تدريبي
+                </div>
+
                 <div class="quiz-timer" id="quizTimer">
-                    ${formatTime(
-                        quiz.timeLeft
-                    )}
+                    ${formatTime(quiz.timeLeft)}
                 </div>
 
             </div>
@@ -1396,17 +1392,15 @@ function renderQuiz() {
             <section class="question-card">
 
                 <div class="question-topline">
+
                     <span>
-                        ${escapeHTML(
-                            quiz.subject
-                        )}
+                        ${escapeHTML(quiz.subject)}
                     </span>
 
                     <small>
-                        ${escapeHTML(
-                            quiz.part
-                        )}
+                        ${escapeHTML(quiz.part)}
                     </small>
+
                 </div>
 
                 <span class="question-label">
@@ -1414,9 +1408,7 @@ function renderQuiz() {
                 </span>
 
                 <h2>
-                    ${escapeHTML(
-                        question.q
-                    )}
+                    ${escapeHTML(question.q)}
                 </h2>
 
 
@@ -1431,15 +1423,11 @@ function renderQuiz() {
                         >
 
                             <span class="answer-letter">
-                                ${String.fromCharCode(
-                                    65 + index
-                                )}
+                                ${String.fromCharCode(65 + index)}
                             </span>
 
                             <strong>
-                                ${escapeHTML(
-                                    option
-                                )}
+                                ${escapeHTML(option)}
                             </strong>
 
                         </button>
@@ -1476,22 +1464,18 @@ function selectAnswer(index) {
 
     if (!state.quiz) return;
 
-    state.quiz.selected =
-        index;
+    state.quiz.selected = index;
 
     document
-        .querySelectorAll(
-            ".answer-button"
-        )
-        .forEach(
-            (button, buttonIndex) => {
+        .querySelectorAll(".answer-button")
+        .forEach((button, buttonIndex) => {
 
-                button.classList.toggle(
-                    "selected",
-                    buttonIndex === index
-                );
-            }
-        );
+            button.classList.toggle(
+                "selected",
+                buttonIndex === index
+            );
+
+        });
 }
 
 
@@ -1507,9 +1491,7 @@ function nextQuestion() {
         quiz.selected === undefined
     ) {
 
-        alert(
-            "اختر إجابة أولاً."
-        );
+        alert("اختر إجابة أولاً.");
 
         return;
     }
@@ -1519,24 +1501,16 @@ function nextQuestion() {
         quiz.questions[quiz.current];
 
     const selectedAnswer =
-        quiz.currentOptions[
-            quiz.selected
-        ];
+        quiz.currentOptions[quiz.selected];
 
 
     const isCorrect =
         selectedAnswer === question.a;
 
 
-    quiz.answers[
-        quiz.current
-    ] = {
-        selected:
-            selectedAnswer,
-
-        correct:
-            question.a,
-
+    quiz.answers[quiz.current] = {
+        selected: selectedAnswer,
+        correct: question.a,
         isCorrect
     };
 
@@ -1574,9 +1548,7 @@ async function finishQuiz() {
 
     quiz.finished = true;
 
-    clearInterval(
-        quiz.timer
-    );
+    clearInterval(quiz.timer);
 
 
     const total =
@@ -1588,6 +1560,12 @@ async function finishQuiz() {
     const wrong =
         quiz.wrong;
 
+    const duration =
+        Math.max(
+            0,
+            600 - quiz.timeLeft
+        );
+
 
     await saveResult(
         quiz.subject,
@@ -1596,31 +1574,32 @@ async function finishQuiz() {
         total,
         quiz.correct,
         wrong,
-        600 - quiz.timeLeft
+        duration
     );
 
+
+    /*
+       هذا التحديث يبقى كما كان في النظام الحالي.
+       قاعدة البيانات وRPC لم يتم تغييرهما.
+    */
 
     if (state.student) {
 
         state.student.points =
-            Number(
-                state.student.points || 0
-            ) + score;
+            Number(state.student.points || 0) +
+            score;
 
         state.student.tests_count =
-            Number(
-                state.student.tests_count || 0
-            ) + 1;
+            Number(state.student.tests_count || 0) +
+            1;
 
         state.student.correct_answers =
-            Number(
-                state.student.correct_answers || 0
-            ) + score;
+            Number(state.student.correct_answers || 0) +
+            score;
 
         state.student.wrong_answers =
-            Number(
-                state.student.wrong_answers || 0
-            ) + wrong;
+            Number(state.student.wrong_answers || 0) +
+            wrong;
 
         state.student.level =
             Math.max(
@@ -1632,9 +1611,7 @@ async function finishQuiz() {
 
         localStorage.setItem(
             "balsam_student",
-            JSON.stringify(
-                state.student
-            )
+            JSON.stringify(state.student)
         );
     }
 
@@ -1697,7 +1674,10 @@ async function saveResult(
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Save result exception:",
+            error
+        );
     }
 }
 
@@ -1715,10 +1695,7 @@ function renderQuizResult() {
     const percentage =
         total
             ? Math.round(
-                (
-                    quiz.correct /
-                    total
-                ) * 100
+                (quiz.correct / total) * 100
             )
             : 0;
 
@@ -1727,22 +1704,12 @@ function renderQuizResult() {
         "استمر في التعلم والتدريب.";
 
     if (percentage >= 90) {
-
-        message =
-            "ممتاز جداً! أداء رائع.";
-
+        message = "ممتاز جداً! أداء رائع.";
     } else if (percentage >= 75) {
-
-        message =
-            "أداء ممتاز، واصل التقدم.";
-
+        message = "أداء ممتاز، واصل التقدم.";
     } else if (percentage >= 50) {
-
-        message =
-            "نتيجة جيدة، ويمكنك تحسينها أكثر.";
-
+        message = "نتيجة جيدة، ويمكنك تحسينها أكثر.";
     } else {
-
         message =
             "لا تستسلم، راجع المادة وحاول مرة أخرى.";
     }
@@ -1754,7 +1721,11 @@ function renderQuizResult() {
 
             <section class="result-card">
 
-                <div class="result-icon">
+                <div class="result-icon ${
+                    percentage >= 50
+                        ? "success"
+                        : "warning"
+                }">
                     ${
                         percentage >= 50
                             ? "✓"
@@ -1781,32 +1752,21 @@ function renderQuizResult() {
                         <strong>
                             ${quiz.correct}
                         </strong>
-
-                        <span>
-                            صحيحة
-                        </span>
+                        <span>صحيحة</span>
                     </div>
-
 
                     <div>
                         <strong>
                             ${quiz.wrong}
                         </strong>
-
-                        <span>
-                            خاطئة
-                        </span>
+                        <span>خاطئة</span>
                     </div>
-
 
                     <div>
                         <strong>
                             ${total}
                         </strong>
-
-                        <span>
-                            الأسئلة
-                        </span>
+                        <span>الأسئلة</span>
                     </div>
 
                 </div>
@@ -1846,7 +1806,7 @@ async function renderRanking() {
 
     appContent.innerHTML = `
 
-        <div class="page-container">
+        <div class="page-container ranking-page">
 
             <div class="page-heading">
 
@@ -1880,9 +1840,7 @@ async function renderRanking() {
     try {
 
         const { data, error } =
-            await sb.rpc(
-                "get_ranking"
-            );
+            await sb.rpc("get_ranking");
 
         if (error) {
             throw error;
@@ -1896,9 +1854,7 @@ async function renderRanking() {
 
 
         const rankingCard =
-            document.querySelector(
-                ".ranking-card"
-            );
+            document.querySelector(".ranking-card");
 
 
         if (!rankingCard) return;
@@ -1940,22 +1896,23 @@ async function renderRanking() {
                                 ${index + 1}
                             </div>
 
-                            <div class="ranking-avatar">
-                                <span></span>
+                            <div class="ranking-avatar"
+                                 aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                                    <path d="M4 21a8 8 0 0 1 16 0"/>
+                                </svg>
                             </div>
 
                             <div class="ranking-name">
 
                                 <strong>
-                                    ${escapeHTML(
-                                        student.name
-                                    )}
+                                    ${escapeHTML(student.name)}
                                 </strong>
 
                                 <small>
                                     ${escapeHTML(
-                                        student.specialization ||
-                                        ""
+                                        student.specialization || ""
                                     )}
                                 </small>
 
@@ -1964,9 +1921,7 @@ async function renderRanking() {
                             <div class="ranking-points">
 
                                 <strong>
-                                    ${formatNumber(
-                                        student.points
-                                    )}
+                                    ${formatNumber(student.points)}
                                 </strong>
 
                                 <small>
@@ -1986,9 +1941,7 @@ async function renderRanking() {
         console.error(error);
 
         const rankingCard =
-            document.querySelector(
-                ".ranking-card"
-            );
+            document.querySelector(".ranking-card");
 
         if (rankingCard) {
 
@@ -2009,25 +1962,19 @@ async function renderRanking() {
 function renderProfile() {
 
     const student =
-        state.student;
+        state.student || {};
 
 
     const totalAnswers =
-        Number(
-            student.correct_answers || 0
-        ) +
-        Number(
-            student.wrong_answers || 0
-        );
+        Number(student.correct_answers || 0) +
+        Number(student.wrong_answers || 0);
 
 
     const accuracy =
         totalAnswers > 0
             ? Math.round(
                 (
-                    Number(
-                        student.correct_answers || 0
-                    ) /
+                    Number(student.correct_answers || 0) /
                     totalAnswers
                 ) * 100
             )
@@ -2036,7 +1983,7 @@ function renderProfile() {
 
     appContent.innerHTML = `
 
-        <div class="page-container">
+        <div class="page-container profile-page">
 
             <section class="profile-card">
 
@@ -2045,7 +1992,10 @@ function renderProfile() {
                     <div class="profile-orbit">
 
                         <div class="profile-core">
-                            <span></span>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                                <path d="M4 21a8 8 0 0 1 16 0"/>
+                            </svg>
                         </div>
 
                     </div>
@@ -2060,15 +2010,12 @@ function renderProfile() {
                     </div>
 
                     <h1>
-                        ${escapeHTML(
-                            student.name
-                        )}
+                        ${escapeHTML(student.name)}
                     </h1>
 
                     <p>
                         ${escapeHTML(
-                            student.specialization ||
-                            "طالب"
+                            student.specialization || "طالب"
                         )}
                     </p>
 
@@ -2091,9 +2038,7 @@ function renderProfile() {
                     </span>
 
                     <strong>
-                        ${formatNumber(
-                            student.level
-                        )}
+                        ${formatNumber(student.level)}
                     </strong>
 
                 </div>
@@ -2105,56 +2050,34 @@ function renderProfile() {
 
                 <div class="stat-card">
                     <div class="stat-icon">✦</div>
-
-                    <span>
-                        النقاط
-                    </span>
-
+                    <span>النقاط</span>
                     <strong>
-                        ${formatNumber(
-                            student.points
-                        )}
+                        ${formatNumber(student.points)}
                     </strong>
                 </div>
 
 
                 <div class="stat-card">
                     <div class="stat-icon">◷</div>
-
-                    <span>
-                        الاختبارات
-                    </span>
-
+                    <span>الاختبارات</span>
                     <strong>
-                        ${formatNumber(
-                            student.tests_count
-                        )}
+                        ${formatNumber(student.tests_count)}
                     </strong>
                 </div>
 
 
                 <div class="stat-card">
                     <div class="stat-icon">✓</div>
-
-                    <span>
-                        الصحيحة
-                    </span>
-
+                    <span>الصحيحة</span>
                     <strong>
-                        ${formatNumber(
-                            student.correct_answers
-                        )}
+                        ${formatNumber(student.correct_answers)}
                     </strong>
                 </div>
 
 
                 <div class="stat-card">
                     <div class="stat-icon">◎</div>
-
-                    <span>
-                        نسبة الدقة
-                    </span>
-
+                    <span>نسبة الدقة</span>
                     <strong>
                         ${accuracy}%
                     </strong>
@@ -2168,9 +2091,7 @@ function renderProfile() {
                 <div class="section-heading">
 
                     <div>
-                        <span>
-                            ملاحظة
-                        </span>
+                        <span>ملاحظة</span>
 
                         <h2>
                             ملاحظتك الشخصية
@@ -2182,9 +2103,7 @@ function renderProfile() {
                 <p>
                     ${
                         student.note
-                            ? escapeHTML(
-                                student.note
-                            )
+                            ? escapeHTML(student.note)
                             : "لا توجد ملاحظة مضافة لهذا الطالب."
                     }
                 </p>
@@ -2196,7 +2115,9 @@ function renderProfile() {
                 class="logout-button"
                 data-action="logout"
             >
-                <span>تسجيل الخروج</span>
+                <span>
+                    تسجيل الخروج
+                </span>
 
                 <svg viewBox="0 0 24 24">
                     <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/>
@@ -2212,4 +2133,41 @@ function renderProfile() {
 
 /* =========================================================
    الأحداث
-==================================================
+========================================================= */
+
+function handleAppClick(event) {
+
+    const target =
+        event.target.closest(
+            "button, [data-action], [data-category], [data-subject-id]"
+        );
+
+    if (!target) return;
+
+
+    /* -------------------------
+       Bottom navigation
+    ------------------------- */
+
+    const nav =
+        target.closest(".nav-button");
+
+    if (nav) {
+
+        const page =
+            nav.dataset.page;
+
+        if (page) {
+            renderPage(page);
+        }
+
+        return;
+    }
+
+
+    /* -------------------------
+       فتح المكتبة
+    ------------------------- */
+
+    if (
+        target.dataset.action
