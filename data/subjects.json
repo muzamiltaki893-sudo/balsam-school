@@ -1,1 +1,494 @@
+[
+  {
+    "id": "islamic",
+    "category": "basic",
+    "number": "01",
+    "name": "التربية الإسلامية",
+    "book": "assets/books/islamic.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-3.json"
+      }
+    ]
+  },
+  {
+    "id": "literature",
+    "category": "basic",
+    "number": "02",
+    "name": "المطالعة والأدب",
+    "book": "assets/books/literature.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/literature-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/literature-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/literature-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/literature-4.json"
+      }
+    ]
+  },
+  {
+    "id": "rhetoric",
+    "category": "basic",
+    "number": "03",
+    "name": "البلاغة",
+    "book": "assets/books/rhetoric.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/rhetoric-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/rhetoric-2.json"
+      }
+    ]
+  },
+  {
+    "id": "grammar",
+    "category": "basic",
+    "number": "04",
+    "name": "القواعد",
+    "book": "assets/books/grammar.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/grammar-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/grammar-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/grammar-3.json"
+      }
+    ]
+  },
+  {
+    "id": "english",
+    "category": "basic",
+    "number": "05",
+    "name": "اللغة الإنجليزية",
+    "book": "assets/books/english.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/english-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/english-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/english-3.json"
+      }
+    ]
+  },
+  {
+    "id": "basic-math",
+    "category": "basic",
+    "number": "06",
+    "name": "الرياضيات الأساسية",
+    "book": "assets/books/basic-math.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/basic-math-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/basic-math-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/basic-math-3.json"
+      }
+    ]
+  },
+  {
+    "id": "specialized-1",
+    "category": "basic",
+    "number": "07",
+    "name": "المتخصصة 1",
+    "book": "assets/books/specialized-1.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-1-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-1-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-1-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-1-4.json"
+      }
+    ]
+  },
+  {
+    "id": "specialized-2",
+    "category": "basic",
+    "number": "08",
+    "name": "المتخصصة 2",
+    "book": "assets/books/specialized-2.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-2-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-2-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-2-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/specialized-2-4.json"
+      }
+    ]
+  },
 
+  {
+    "id": "chemistry",
+    "category": "scientific",
+    "number": "01",
+    "name": "الكيمياء",
+    "book": "assets/books/chemistry.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-4.json"
+      },
+      {
+        "name": "الجزء الخامس",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-5.json"
+      },
+      {
+        "name": "الجزء السادس",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-6.json"
+      },
+      {
+        "name": "الجزء السابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-7.json"
+      },
+      {
+        "name": "الجزء الثامن",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/chemistry-8.json"
+      }
+    ]
+  },
+
+  {
+    "id": "physics",
+    "category": "scientific",
+    "number": "02",
+    "name": "الفيزياء",
+    "book": "assets/books/physics.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/physics-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/physics-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/physics-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/physics-4.json"
+      }
+    ]
+  },
+
+  {
+    "id": "biology",
+    "category": "scientific",
+    "number": "03",
+    "name": "الأحياء",
+    "book": "assets/books/biology.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/biology-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/biology-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/biology-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/biology-4.json"
+      },
+      {
+        "name": "الجزء الخامس",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/biology-5.json"
+      }
+    ]
+  },
+
+  {
+    "id": "computer",
+    "category": "scientific",
+    "number": "04",
+    "name": "الحاسوب",
+    "book": "assets/books/computer.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/computer-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/computer-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/computer-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/computer-4.json"
+      }
+    ]
+  },
+
+  {
+    "id": "engineering",
+    "category": "scientific",
+    "number": "05",
+    "name": "الهندسية",
+    "book": "assets/books/engineering.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/engineering-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/engineering-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/engineering-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/engineering-4.json"
+      }
+    ]
+  },
+
+  {
+    "id": "islamic-studies",
+    "category": "literary",
+    "number": "01",
+    "name": "الدراسات الإسلامية",
+    "book": "assets/books/islamic-studies.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-studies-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-studies-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/islamic-studies-3.json"
+      }
+    ]
+  },
+
+  {
+    "id": "history",
+    "category": "literary",
+    "number": "02",
+    "name": "التاريخ",
+    "book": "assets/books/history.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/history-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/history-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/history-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/history-4.json"
+      },
+      {
+        "name": "الجزء الخامس",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/history-5.json"
+      }
+    ]
+  },
+
+  {
+    "id": "geography",
+    "category": "literary",
+    "number": "03",
+    "name": "الجغرافيا",
+    "book": "assets/books/geography.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/geography-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/geography-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/geography-3.json"
+      },
+      {
+        "name": "الجزء الرابع",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/geography-4.json"
+      }
+    ]
+  },
+
+  {
+    "id": "foundation",
+    "category": "foundation",
+    "number": "01",
+    "name": "الأساسيات",
+    "book": "assets/books/foundation.pdf",
+    "parts": [
+      {
+        "name": "الجزء الأول",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/foundation-1.json"
+      },
+      {
+        "name": "الجزء الثاني",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/foundation-2.json"
+      },
+      {
+        "name": "الجزء الثالث",
+        "questions": "اختبار 20 سؤالاً",
+        "file": "data/questions/foundation-3.json"
+      }
+    ]
+  }
+    ]
