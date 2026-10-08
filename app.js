@@ -29,10 +29,22 @@ if (
 
 
 /* =========================================================
+   Local storage keys
+   ========================================================= */
+
+const STORAGE = {
+    student: "balsam_student",
+    progress: "balsam_progress_backup_v1",
+    results: "balsam_test_results_v1"
+};
+
+
+/* =========================================================
    الحالة العامة
    ========================================================= */
 
 const state = {
+
     student: null,
 
     subjects: [],
@@ -55,7 +67,9 @@ const state = {
         questionCount: 20,
 
         timer: null,
-        loading: false
+        loading: false,
+
+        lastResult: null
     }
 };
 
@@ -204,6 +218,21 @@ const ICONS = {
             <path d="M8 11h7"/>
             <path d="M8 15h5"/>
         </svg>
+    `,
+
+    clock: `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3 2"/>
+        </svg>
+    `,
+
+    chart: `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 19V5"/>
+            <path d="M4 19h16"/>
+            <path d="m7 15 3-4 3 2 5-7"/>
+        </svg>
     `
 };
 
@@ -227,23 +256,15 @@ function shuffle(array) {
 
     const result = [...array];
 
-    for (
-        let i = result.length - 1;
-        i > 0;
-        i--
-    ) {
+    for (let i = result.length - 1; i > 0; i--) {
+
         const j =
             Math.floor(
                 Math.random() * (i + 1)
             );
 
-        [
-            result[i],
-            result[j]
-        ] = [
-            result[j],
-            result[i]
-        ];
+        [result[i], result[j]] =
+            [result[j], result[i]];
     }
 
     return result;
@@ -433,10 +454,272 @@ function updateStudentChip() {
 
 
 /* =========================================================
+   Local backup
+   ========================================================= */
+
+function getLocalProgress() {
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                STORAGE.progress
+            );
+
+        if (!raw) {
+            return {};
+        }
+
+        const data = JSON.parse(raw);
+
+        return (
+            data &&
+            typeof data === "object"
+        )
+            ? data
+            : {};
+
+    } catch (error) {
+
+        console.warn(
+            "Could not read local progress:",
+            error
+        );
+
+        return {};
+    }
+}
+
+
+function saveLocalProgress() {
+
+    if (!state.student) {
+        return;
+    }
+
+    try {
+
+        const id =
+            String(
+                getStudentValue(
+                    "id",
+                    "student_id",
+                    "studentNumber",
+                    "student_number"
+                )
+            );
+
+        if (!id) {
+            return;
+        }
+
+        const progress =
+            getLocalProgress();
+
+        progress[id] = {
+
+            studentId: id,
+
+            studentNumber:
+                studentNumber(),
+
+            name:
+                studentName(),
+
+            points:
+                Number(
+                    getStudentValue(
+                        "points",
+                        "score",
+                        "total_points"
+                    )
+                ) || 0,
+
+            tests:
+                Number(
+                    getStudentValue(
+                        "tests",
+                        "test_count",
+                        "completed_tests",
+                        "total_tests"
+                    )
+                ) || 0,
+
+            correct:
+                Number(
+                    getStudentValue(
+                        "correct",
+                        "correct_answers",
+                        "total_correct"
+                    )
+                ) || 0,
+
+            wrong:
+                Number(
+                    getStudentValue(
+                        "wrong",
+                        "wrong_answers",
+                        "total_wrong"
+                    )
+                ) || 0,
+
+            level:
+                getStudentValue(
+                    "level",
+                    "student_level"
+                ) ||
+                calculateLevel(
+                    Number(
+                        getStudentValue(
+                            "points",
+                            "score",
+                            "total_points"
+                        )
+                    ) || 0
+                ),
+
+            updatedAt:
+                new Date().toISOString()
+        };
+
+        localStorage.setItem(
+            STORAGE.progress,
+            JSON.stringify(progress)
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Could not save local progress:",
+            error
+        );
+    }
+}
+
+
+function getLocalResults() {
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                STORAGE.results
+            );
+
+        if (!raw) {
+            return [];
+        }
+
+        const data = JSON.parse(raw);
+
+        return Array.isArray(data)
+            ? data
+            : [];
+
+    } catch (error) {
+
+        console.warn(
+            "Could not read local results:",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+function saveLocalResult(result) {
+
+    try {
+
+        const results =
+            getLocalResults();
+
+        const studentId =
+            String(
+                getStudentValue(
+                    "id",
+                    "student_id",
+                    "studentNumber",
+                    "student_number"
+                )
+            );
+
+        const backup = {
+
+            ...result,
+
+            studentId,
+
+            studentNumber:
+                studentNumber(),
+
+            studentName:
+                studentName(),
+
+            savedAt:
+                new Date().toISOString(),
+
+            source:
+                "local-backup"
+        };
+
+        results.unshift(backup);
+
+        /*
+         * نحتفظ بآخر 50 نتيجة فقط
+         * حتى لا يمتلئ localStorage.
+         */
+
+        const limited =
+            results.slice(0, 50);
+
+        localStorage.setItem(
+            STORAGE.results,
+            JSON.stringify(limited)
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Could not save local result:",
+            error
+        );
+    }
+}
+
+
+function saveStudentLocalSnapshot() {
+
+    try {
+
+        localStorage.setItem(
+            STORAGE.student,
+            JSON.stringify(
+                state.student
+            )
+        );
+
+        saveLocalProgress();
+
+    } catch (error) {
+
+        console.warn(
+            "Could not save student snapshot:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
    Login
    ========================================================= */
 
-async function loginStudent(studentNumberValue, passwordValue) {
+async function loginStudent(
+    studentNumberValue,
+    passwordValue
+) {
 
     if (!sb) {
         throw new Error(
@@ -528,10 +811,7 @@ async function handleLogin(event) {
 
         state.student = student;
 
-        localStorage.setItem(
-            "balsam_student",
-            JSON.stringify(student)
-        );
+        saveStudentLocalSnapshot();
 
         await showApplication();
 
@@ -564,7 +844,7 @@ function restoreSession() {
 
         const saved =
             localStorage.getItem(
-                "balsam_student"
+                STORAGE.student
             );
 
         if (!saved) {
@@ -590,7 +870,7 @@ function restoreSession() {
         );
 
         localStorage.removeItem(
-            "balsam_student"
+            STORAGE.student
         );
     }
 }
@@ -611,6 +891,8 @@ async function showApplication() {
     appScreen?.classList.remove("hidden");
 
     updateStudentChip();
+
+    saveLocalProgress();
 
     await loadStaticData();
 
@@ -696,10 +978,6 @@ async function loadStaticData() {
 
     } else {
 
-        console.warn(
-            "Posts could not be loaded."
-        );
-
         state.posts = [];
     }
 
@@ -714,10 +992,6 @@ async function loadStaticData() {
     } else {
 
         state.notice = null;
-
-        console.warn(
-            "Notice could not be loaded."
-        );
     }
 }
 
@@ -744,7 +1018,10 @@ function normalizeSubjects(value) {
 }
 
 
-function normalizeSubject(subject, index) {
+function normalizeSubject(
+    subject,
+    index
+) {
 
     if (
         !subject ||
@@ -767,6 +1044,7 @@ function normalizeSubject(subject, index) {
             }
 
             return {
+
                 ...part,
 
                 index:
@@ -822,7 +1100,7 @@ function normalizeSubject(subject, index) {
 
 
 /* =========================================================
-   Page navigation
+   Navigation
    ========================================================= */
 
 function setActiveNavigation(page) {
@@ -845,17 +1123,11 @@ function renderPage(page) {
         return;
     }
 
-    /*
-       أثناء الاختبار لا نسمح بالتنقل إلى صفحة
-       أخرى حتى لا تضيع محاولة الطالب.
-    */
-
     if (
         state.quiz.questions.length &&
         state.currentPage === "quiz" &&
         page !== "quiz"
     ) {
-
         return;
     }
 
@@ -921,10 +1193,6 @@ function renderHome() {
             state.posts
         );
 
-    const notice =
-        state.notice;
-
-
     const points =
         Number(
             getStudentValue(
@@ -933,7 +1201,6 @@ function renderHome() {
                 "total_points"
             )
         ) || 0;
-
 
     const tests =
         Number(
@@ -944,7 +1211,6 @@ function renderHome() {
                 "total_tests"
             )
         ) || 0;
-
 
     const correct =
         Number(
@@ -989,47 +1255,41 @@ function renderHome() {
 
                     </div>
 
-
                     <div class="hero-stats">
 
                         <div class="mini-stat">
                             <span class="mini-stat-value">
                                 ${formatNumber(points)}
                             </span>
-
                             <span class="mini-stat-label">
                                 النقاط
                             </span>
                         </div>
 
-
                         <div class="mini-stat">
                             <span class="mini-stat-value">
                                 ${formatNumber(tests)}
                             </span>
-
                             <span class="mini-stat-label">
                                 الاختبارات
                             </span>
                         </div>
 
-
                         <div class="mini-stat">
                             <span class="mini-stat-value">
                                 ${formatNumber(correct)}
                             </span>
-
                             <span class="mini-stat-label">
                                 الإجابات الصحيحة
                             </span>
                         </div>
 
-
                         <div class="mini-stat">
                             <span class="mini-stat-value">
-                                ${formatNumber(state.subjects.length)}
+                                ${formatNumber(
+                                    state.subjects.length
+                                )}
                             </span>
-
                             <span class="mini-stat-label">
                                 المواد
                             </span>
@@ -1067,15 +1327,12 @@ function renderHome() {
             </div>
 
 
-            ${
-                renderNotice(notice)
-            }
+            ${renderNotice(state.notice)}
 
 
             <div class="library-banner">
 
                 <div>
-
                     <h2>
                         مكتبتك التعليمية
                     </h2>
@@ -1084,7 +1341,6 @@ function renderHome() {
                         تصفح المواد الدراسية وابدأ اختبارك
                         من المكان الذي يناسبك.
                     </p>
-
                 </div>
 
                 <button
@@ -1135,17 +1391,14 @@ function renderHome() {
                                 .join("")
                             : `
                                 <div class="empty-state">
-
                                     <strong>
                                         لا توجد منشورات حالياً
                                     </strong>
-
                                     <p>
                                         ستظهر منشورات المدرسة هنا عند نشرها.
                                     </p>
-
                                 </div>
-                              `
+                            `
                     }
 
                 </div>
@@ -1174,11 +1427,9 @@ function renderNotice(notice) {
         notice.message ||
         "";
 
-
     if (!content) {
         return "";
     }
-
 
     return `
 
@@ -1230,7 +1481,6 @@ function renderPost(post) {
         post.createdAt ||
         "";
 
-
     const firstLetter =
         author.trim().charAt(0) ||
         "م";
@@ -1256,9 +1506,11 @@ function renderPost(post) {
                         date
                             ? `
                                 <small>
-                                    ${escapeHTML(formatDate(date))}
+                                    ${escapeHTML(
+                                        formatDate(date)
+                                    )}
                                 </small>
-                              `
+                            `
                             : ""
                     }
 
@@ -1266,19 +1518,19 @@ function renderPost(post) {
 
             </div>
 
-
             <div class="post-body">
                 ${escapeHTML(text)}
             </div>
-
 
             ${
                 date
                     ? `
                         <div class="post-date">
-                            ${escapeHTML(formatDate(date))}
+                            ${escapeHTML(
+                                formatDate(date)
+                            )}
                         </div>
-                      `
+                    `
                     : ""
             }
 
@@ -1295,7 +1547,6 @@ function renderLibrary() {
 
     const groups = {};
 
-
     state.subjects.forEach(subject => {
 
         const category =
@@ -1307,7 +1558,6 @@ function renderLibrary() {
         }
 
         groups[category].push(subject);
-
     });
 
 
@@ -1359,7 +1609,7 @@ function renderLibrary() {
                             }
 
                         </div>
-                      `
+                    `
                     : `
                         <div class="empty-state">
 
@@ -1372,7 +1622,7 @@ function renderLibrary() {
                             </p>
 
                         </div>
-                      `
+                    `
             }
 
         </section>
@@ -1399,15 +1649,12 @@ function renderCategory(
                     </span>
 
                     <div>
-
                         <h2>
                             ${escapeHTML(category)}
                         </h2>
-
                     </div>
 
                 </div>
-
 
                 <span class="category-count">
                     ${formatNumber(subjects.length)}
@@ -1455,7 +1702,11 @@ function renderSubjectCard(subject) {
 
                 <small>
                     ${formatNumber(subject.parts.length)}
-                    ${subject.parts.length === 1 ? "جزء" : "أجزاء"}
+                    ${
+                        subject.parts.length === 1
+                            ? "جزء"
+                            : "أجزاء"
+                    }
                 </small>
 
             </span>
@@ -1480,7 +1731,6 @@ function renderSubject(subject) {
         return;
     }
 
-
     state.currentSubject = subject;
 
 
@@ -1494,7 +1744,6 @@ function renderSubject(subject) {
                 type="button"
             >
                 ${ICONS.back}
-
                 العودة إلى المكتبة
             </button>
 
@@ -1524,7 +1773,6 @@ function renderSubject(subject) {
             ${
                 subject.book
                     ? `
-
                         <div class="subject-book-card">
 
                             <div class="subject-book-info">
@@ -1547,7 +1795,6 @@ function renderSubject(subject) {
 
                             </div>
 
-
                             <a
                                 class="primary-button subject-book-button"
                                 href="${escapeHTML(subject.book)}"
@@ -1555,14 +1802,11 @@ function renderSubject(subject) {
                                 rel="noopener"
                             >
                                 ${ICONS.external}
-
-                                كتاب المادة
-                                — فتح / تنزيل
+                                كتاب المادة — فتح / تنزيل
                             </a>
 
                         </div>
-
-                      `
+                    `
                     : ""
             }
 
@@ -1611,7 +1855,7 @@ function renderSubject(subject) {
                             }
 
                         </div>
-                      `
+                    `
                     : `
                         <div class="empty-state">
 
@@ -1624,7 +1868,7 @@ function renderSubject(subject) {
                             </p>
 
                         </div>
-                      `
+                    `
             }
 
         </section>
@@ -1687,7 +1931,6 @@ function renderPartCard(
                     type="button"
                 >
                     ${ICONS.test}
-
                     ابدأ الاختبار
                 </button>
 
@@ -1745,6 +1988,7 @@ function normalizeQuestion(question) {
 
 
     if (!Array.isArray(options)) {
+
         options = [
             correct,
             ...wrong
@@ -1772,6 +2016,7 @@ function normalizeQuestion(question) {
             String(correct)
         )
     ) {
+
         options.unshift(
             String(correct)
         );
@@ -1797,7 +2042,8 @@ function normalizeQuestion(question) {
 
         a: String(correct),
 
-        options: shuffle(options)
+        options:
+            shuffle(options)
     };
 }
 
@@ -1805,6 +2051,7 @@ function normalizeQuestion(question) {
 async function loadQuestions(file) {
 
     if (!file) {
+
         throw new Error(
             "ملف أسئلة الاختبار غير محدد."
         );
@@ -1860,9 +2107,7 @@ async function startPartQuiz(
             <section class="page">
 
                 <div class="error-state">
-
                     لم يتم تحديد ملف أسئلة لهذا الجزء.
-
                 </div>
 
             </section>
@@ -1874,6 +2119,7 @@ async function startPartQuiz(
 
     state.currentSubject = subject;
     state.currentPart = part;
+
 
     state.quiz = {
 
@@ -1900,7 +2146,9 @@ async function startPartQuiz(
 
         timer: null,
 
-        loading: true
+        loading: true,
+
+        lastResult: null
     };
 
 
@@ -1920,7 +2168,7 @@ async function startPartQuiz(
                     <div class="loading-orb"></div>
 
                     <p>
-                        جارٍ تحميل أسئلة الاختبار...
+                        جارٍ تجهيز الاختبار...
                     </p>
 
                 </div>
@@ -1940,6 +2188,7 @@ async function startPartQuiz(
 
 
         if (!allQuestions.length) {
+
             throw new Error(
                 "لا توجد أسئلة صالحة في ملف هذا الاختبار."
             );
@@ -1971,7 +2220,8 @@ async function startPartQuiz(
         state.quiz.startTime =
             Date.now();
 
-        state.quiz.loading = false;
+        state.quiz.loading =
+            false;
 
 
         renderQuiz();
@@ -1985,6 +2235,7 @@ async function startPartQuiz(
             "Quiz loading error:",
             error
         );
+
 
         appContent.innerHTML = `
 
@@ -2000,12 +2251,16 @@ async function startPartQuiz(
                 </button>
 
                 <div class="error-state">
+
                     تعذر تحميل الاختبار.
+
                     <br>
+
                     ${escapeHTML(
                         error?.message ||
                         "حدث خطأ غير معروف."
                     )}
+
                 </div>
 
             </section>
@@ -2037,16 +2292,13 @@ function renderQuiz() {
     const total =
         quiz.questions.length;
 
-
     const current =
         quiz.index + 1;
-
 
     const progress =
         Math.round(
             (current / total) * 100
         );
-
 
     const selected =
         quiz.answers[
@@ -2054,9 +2306,19 @@ function renderQuiz() {
         ];
 
 
+    const answered =
+        Object.keys(
+            quiz.answers
+        ).length;
+
+
+    const remaining =
+        total - answered;
+
+
     appContent.innerHTML = `
 
-        <section class="page quiz-page">
+        <section class="page quiz-page futuristic-quiz">
 
             <div class="quiz-header">
 
@@ -2066,7 +2328,6 @@ function renderQuiz() {
                     type="button"
                 >
                     ${ICONS.close}
-
                     إنهاء الاختبار
                 </button>
 
@@ -2107,7 +2368,8 @@ function renderQuiz() {
                 <div class="quiz-progress-info">
 
                     <span>
-                        السؤال ${formatNumber(current)}
+                        السؤال
+                        ${formatNumber(current)}
                         من
                         ${formatNumber(total)}
                     </span>
@@ -2131,7 +2393,24 @@ function renderQuiz() {
             </div>
 
 
-            <div class="question-card">
+            <div class="quiz-live-info">
+
+                <span>
+                    ${ICONS.check}
+                    ${formatNumber(answered)}
+                    مجاب
+                </span>
+
+                <span>
+                    ${ICONS.test}
+                    ${formatNumber(remaining)}
+                    متبقٍ
+                </span>
+
+            </div>
+
+
+            <div class="question-card futuristic-question-card">
 
                 <div class="quiz-question-meta">
                     سؤال ${formatNumber(current)}
@@ -2177,13 +2456,15 @@ function renderQuiz() {
                         data-action="next-question"
                         type="button"
                     >
+
                         ${
                             current >= total
-                                ? "إنهاء الاختبار"
+                                ? "تسليم الاختبار"
                                 : "السؤال التالي"
                         }
 
                         ${ICONS.arrow}
+
                     </button>
 
                 </div>
@@ -2266,13 +2547,24 @@ function formatSeconds(totalSeconds) {
         );
 
 
+    const hours =
+        Math.floor(
+            seconds / 3600
+        );
+
     const minutes =
         Math.floor(
-            seconds / 60
+            (seconds % 3600) / 60
         );
 
     const remaining =
         seconds % 60;
+
+
+    if (hours > 0) {
+
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
+    }
 
 
     return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
@@ -2296,10 +2588,18 @@ function startQuizTimer() {
 
 
             if (timer) {
+
                 timer.textContent =
                     formatSeconds(
                         remaining
                     );
+
+
+                timer.classList.toggle(
+                    "timer-warning",
+                    remaining <= 60
+                );
+
             }
 
 
@@ -2307,9 +2607,7 @@ function startQuizTimer() {
 
                 stopQuizTimer();
 
-                finishQuiz(
-                    true
-                );
+                finishQuiz(true);
             }
 
         }, 1000);
@@ -2396,7 +2694,9 @@ function quitQuiz() {
 
         timer: null,
 
-        loading: false
+        loading: false,
+
+        lastResult: null
     };
 
 
@@ -2410,7 +2710,9 @@ function quitQuiz() {
    Finish quiz
    ========================================================= */
 
-async function finishQuiz(autoFinished = false) {
+async function finishQuiz(
+    autoFinished = false
+) {
 
     if (
         !state.quiz.questions.length
@@ -2427,24 +2729,61 @@ async function finishQuiz(autoFinished = false) {
 
 
     let correct = 0;
+    let unanswered = 0;
 
 
-    questions.forEach(
-        (question, index) => {
+    const review =
+        questions.map(
+            (question, index) => {
 
-            const answer =
-                state.quiz.answers[index];
+                const selected =
+                    state.quiz.answers[index];
 
 
-            if (
-                answer !== undefined &&
-                answer === question.a
-            ) {
-                correct++;
+                const hasAnswer =
+                    selected !== undefined &&
+                    selected !== null &&
+                    String(selected).trim() !== "";
+
+
+                const isCorrect =
+                    hasAnswer &&
+                    selected === question.a;
+
+
+                if (isCorrect) {
+                    correct++;
+                }
+
+
+                if (!hasAnswer) {
+                    unanswered++;
+                }
+
+
+                return {
+
+                    number:
+                        index + 1,
+
+                    question:
+                        question.q,
+
+                    selectedAnswer:
+                        hasAnswer
+                            ? String(selected)
+                            : "",
+
+                    correctAnswer:
+                        question.a,
+
+                    isCorrect,
+
+                    unanswered:
+                        !hasAnswer
+                };
             }
-
-        }
-    );
+        );
 
 
     const total =
@@ -2452,7 +2791,20 @@ async function finishQuiz(autoFinished = false) {
 
 
     const wrong =
-        total - correct;
+        total -
+        correct -
+        unanswered;
+
+
+    const percentage =
+        total
+            ? Math.round(
+                (
+                    correct /
+                    total
+                ) * 100
+            )
+            : 0;
 
 
     const elapsed =
@@ -2476,21 +2828,42 @@ async function finishQuiz(autoFinished = false) {
             state.currentSubject?.name ||
             "",
 
+        subjectId:
+            state.currentSubject?.id ||
+            "",
+
         part:
             state.currentPart?.name ||
             "",
 
-        score: correct,
+        score:
+            correct,
 
-        totalQuestions: total,
+        totalQuestions:
+            total,
 
-        correctAnswers: correct,
+        correctAnswers:
+            correct,
 
-        wrongAnswers: wrong,
+        wrongAnswers:
+            wrong,
 
-        durationSeconds: elapsed,
+        unanswered,
 
-        autoFinished
+        percentage,
+
+        durationSeconds:
+            elapsed,
+
+        durationLimitSeconds:
+            state.quiz.duration,
+
+        autoFinished,
+
+        submittedAt:
+            new Date().toISOString(),
+
+        review
     };
 
 
@@ -2498,11 +2871,37 @@ async function finishQuiz(autoFinished = false) {
         result;
 
 
-    await saveTestResult(result);
+    /*
+     * نحفظ نسخة محلية كاملة من التقرير
+     * قبل محاولة الاتصال بـ Supabase.
+     */
+    saveLocalResult(result);
 
 
+    /*
+     * حفظ نتيجة الاختبار في Supabase.
+     */
+    const saved =
+        await saveTestResult(result);
+
+
+    result.supabaseSaved =
+        saved;
+
+
+    /*
+     * الاحتفاظ بالنتيجة كاملة في الذاكرة
+     * حتى يستطيع الطالب رؤية التقرير.
+     */
+    state.quiz.lastResult =
+        result;
+
+
+    /*
+     * لا نحذف الأسئلة من التقرير.
+     * نحذفها من حالة الاختبار فقط.
+     */
     state.quiz.questions = [];
-
 
     state.currentPage = "result";
 
@@ -2511,12 +2910,15 @@ async function finishQuiz(autoFinished = false) {
 
 
 /* =========================================================
-   Save result
+   Save result to Supabase
    ========================================================= */
 
 async function saveTestResult(result) {
 
     if (!sb || !state.student) {
+
+        saveLocalProgress();
+
         return false;
     }
 
@@ -2529,9 +2931,12 @@ async function saveTestResult(result) {
 
 
     if (!studentId) {
+
         console.warn(
             "Student ID is missing; result not saved."
         );
+
+        saveLocalProgress();
 
         return false;
     }
@@ -2578,7 +2983,8 @@ async function saveTestResult(result) {
 
 
         /*
-         * تحديث القيم المحلية فقط بعد نجاح الحفظ.
+         * تحديث البيانات المحلية بعد نجاح
+         * الحفظ في Supabase.
          */
 
         const currentPoints =
@@ -2612,6 +3018,16 @@ async function saveTestResult(result) {
             ) || 0;
 
 
+        const currentWrong =
+            Number(
+                getStudentValue(
+                    "wrong",
+                    "wrong_answers",
+                    "total_wrong"
+                )
+            ) || 0;
+
+
         state.student.points =
             currentPoints +
             result.score;
@@ -2626,13 +3042,12 @@ async function saveTestResult(result) {
             result.correctAnswers;
 
 
-        localStorage.setItem(
-            "balsam_student",
-            JSON.stringify(
-                state.student
-            )
-        );
+        state.student.wrong =
+            currentWrong +
+            result.wrongAnswers;
 
+
+        saveStudentLocalSnapshot();
 
         updateStudentChip();
 
@@ -2647,8 +3062,168 @@ async function saveTestResult(result) {
             error
         );
 
+
+        /*
+         * النتيجة الكاملة محفوظة محلياً بالفعل.
+         * لذلك لا تضيع نتيجة الطالب إذا انقطع
+         * الإنترنت أو حدث خطأ في Supabase.
+         */
+
+        saveLocalProgress();
+
         return false;
     }
+}
+
+
+/* =========================================================
+   Result helpers
+   ========================================================= */
+
+function getResultMessage(percentage) {
+
+    if (percentage >= 90) {
+        return {
+            title: "أداء استثنائي",
+            text: "نتيجة ممتازة جداً. حافظ على هذا المستوى واستمر في التقدم."
+        };
+    }
+
+    if (percentage >= 80) {
+        return {
+            title: "أداء ممتاز",
+            text: "أداء قوي جداً. لديك مستوى أكاديمي مميز."
+        };
+    }
+
+    if (percentage >= 70) {
+        return {
+            title: "أداء جيد جداً",
+            text: "نتيجة جيدة. مع المزيد من المراجعة يمكنك الوصول إلى مستوى أعلى."
+        };
+    }
+
+    if (percentage >= 60) {
+        return {
+            title: "أداء جيد",
+            text: "لديك أساس جيد، وراجع النقاط التي أخطأت فيها لتحسين نتيجتك."
+        };
+    }
+
+    if (percentage >= 50) {
+        return {
+            title: "بحاجة إلى مزيد من المراجعة",
+            text: "واصل التدريب والمراجعة، وستتمكن من رفع مستواك في المحاولة القادمة."
+        };
+    }
+
+    return {
+        title: "تحتاج إلى مراجعة أكثر",
+        text: "لا تجعل النتيجة تحبطك. استخدم الإجابات الصحيحة والخاطئة لتحديد ما تحتاج إلى مراجعته."
+    };
+}
+
+
+function getPerformanceClass(percentage) {
+
+    if (percentage >= 80) {
+        return "excellent";
+    }
+
+    if (percentage >= 60) {
+        return "good";
+    }
+
+    if (percentage >= 50) {
+        return "average";
+    }
+
+    return "weak";
+}
+
+
+function renderReviewItem(item) {
+
+    const statusClass =
+        item.isCorrect
+            ? "review-correct"
+            : item.unanswered
+                ? "review-unanswered"
+                : "review-wrong";
+
+
+    const statusText =
+        item.isCorrect
+            ? "إجابة صحيحة"
+            : item.unanswered
+                ? "لم تتم الإجابة"
+                : "إجابة خاطئة";
+
+
+    return `
+
+        <article
+            class="quiz-review-item ${statusClass}"
+        >
+
+            <div class="review-item-head">
+
+                <span class="review-number">
+                    ${formatNumber(item.number)}
+                </span>
+
+                <span class="review-status">
+                    ${item.isCorrect ? ICONS.check : ICONS.close}
+                    ${statusText}
+                </span>
+
+            </div>
+
+
+            <h3>
+                ${escapeHTML(item.question)}
+            </h3>
+
+
+            <div class="review-answer-grid">
+
+                <div class="review-answer student-answer">
+
+                    <span>
+                        إجابتك
+                    </span>
+
+                    <strong>
+                        ${
+                            item.selectedAnswer
+                                ? escapeHTML(
+                                    item.selectedAnswer
+                                )
+                                : "لم تتم الإجابة"
+                        }
+                    </strong>
+
+                </div>
+
+
+                <div class="review-answer correct-answer">
+
+                    <span>
+                        الإجابة الصحيحة
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            item.correctAnswer
+                        )}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </article>
+    `;
 }
 
 
@@ -2665,21 +3240,46 @@ function renderQuizResult(result) {
 
 
     const percentage =
-        result.totalQuestions
-            ? Math.round(
-                (
-                    result.correctAnswers /
-                    result.totalQuestions
-                ) * 100
-            )
-            : 0;
+        Number(result.percentage) || 0;
+
+
+    const message =
+        getResultMessage(
+            percentage
+        );
+
+
+    const performanceClass =
+        getPerformanceClass(
+            percentage
+        );
+
+
+    const unanswered =
+        Number(
+            result.unanswered
+        ) || 0;
+
+
+    const review =
+        Array.isArray(result.review)
+            ? result.review
+            : [];
+
+
+    const savedText =
+        result.supabaseSaved
+            ? "تم حفظ النتيجة في قاعدة البيانات"
+            : "تم حفظ نسخة احتياطية من النتيجة على الجهاز";
 
 
     appContent.innerHTML = `
 
-        <section class="page quiz-result-page">
+        <section
+            class="page quiz-result-page professional-result"
+        >
 
-            <div class="result-card">
+            <div class="result-hero ${performanceClass}">
 
                 <div class="result-icon">
 
@@ -2692,35 +3292,68 @@ function renderQuizResult(result) {
                 </div>
 
 
+                <span class="result-eyebrow">
+                    تقرير الاختبار
+                </span>
+
+
                 <h1>
-                    تم الانتهاء من الاختبار
+                    ${escapeHTML(message.title)}
                 </h1>
 
 
                 <p>
-                    ${
-                        result.autoFinished
-                            ? "انتهى الوقت وتم إنهاء الاختبار تلقائياً."
-                            : "تم تسجيل نتيجة محاولتك."
-                    }
+                    ${escapeHTML(message.text)}
                 </p>
 
 
                 <div class="result-score">
 
-                    ${formatNumber(result.score)}
+                    ${formatNumber(
+                        result.score
+                    )}
 
                     <small>
                         /
-                        ${formatNumber(result.totalQuestions)}
+                        ${formatNumber(
+                            result.totalQuestions
+                        )}
                     </small>
+
+                </div>
+
+
+                <div class="result-percentage">
+                    ${formatNumber(percentage)}%
+                </div>
+
+
+                <div class="result-save-status">
+                    ${ICONS.check}
+                    ${savedText}
+                </div>
+
+            </div>
+
+
+            <div class="result-summary">
+
+                <div class="result-summary-heading">
+
+                    <span class="eyebrow">
+                        ملخص الأداء
+                    </span>
+
+                    <h2>
+                        تحليل نتيجتك
+                    </h2>
 
                 </div>
 
 
                 <div class="result-stats">
 
-                    <div class="result-stat">
+                    <div class="result-stat result-stat-correct">
 
                         <strong>
                             ${formatNumber(
@@ -2735,7 +3368,7 @@ function renderQuizResult(result) {
                     </div>
 
 
-                    <div class="result-stat">
+                    <div class="result-stat result-stat-wrong">
 
                         <strong>
                             ${formatNumber(
@@ -2750,7 +3383,22 @@ function renderQuizResult(result) {
                     </div>
 
 
-                    <div class="result-stat">
+                    <div class="result-stat result-stat-empty">
+
+                        <strong>
+                            ${formatNumber(
+                                unanswered
+                            )}
+                        </strong>
+
+                        <span>
+                            دون إجابة
+                        </span>
+
+                    </div>
+
+
+                    <div class="result-stat result-stat-time">
 
                         <strong>
                             ${formatSeconds(
@@ -2766,29 +3414,144 @@ function renderQuizResult(result) {
 
                 </div>
 
-
-                <div class="result-actions">
-
-                    <button
-                        class="primary-button"
-                        data-page="library"
-                        type="button"
-                    >
-                        ${ICONS.book}
-
-                        العودة إلى المكتبة
-                    </button>
+            </div>
 
 
-                    <button
-                        class="secondary-button"
-                        data-page="home"
-                        type="button"
-                    >
-                        الرئيسية
-                    </button>
+            <div class="result-meta-card">
+
+                <div>
+
+                    <span>
+                        المادة
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            result.subject
+                        )}
+                    </strong>
 
                 </div>
+
+
+                <div>
+
+                    <span>
+                        الاختبار
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            result.part
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        تاريخ المحاولة
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            formatDate(
+                                result.submittedAt
+                            )
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        الحالة
+                    </span>
+
+                    <strong>
+                        ${
+                            result.autoFinished
+                                ? "انتهى الوقت"
+                                : "تم التسليم"
+                        }
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <section class="result-review-section">
+
+                <div class="result-review-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            مراجعة الأسئلة
+                        </span>
+
+                        <h2>
+                            إجابات الاختبار
+                        </h2>
+
+                        <p>
+                            راجع إجابتك والإجابة الصحيحة
+                            لكل سؤال لمعرفة نقاط القوة والأخطاء.
+                        </p>
+
+                    </div>
+
+                    <span class="review-count">
+                        ${formatNumber(review.length)}
+                        سؤال
+                    </span>
+
+                </div>
+
+
+                <div class="quiz-review-list">
+
+                    ${
+                        review.length
+                            ? review
+                                .map(renderReviewItem)
+                                .join("")
+                            : `
+                                <div class="empty-state">
+                                    لا توجد بيانات مراجعة.
+                                </div>
+                            `
+                    }
+
+                </div>
+
+            </section>
+
+
+            <div class="result-actions">
+
+                <button
+                    class="primary-button"
+                    data-page="library"
+                    type="button"
+                >
+                    ${ICONS.book}
+                    العودة إلى المكتبة
+                </button>
+
+
+                <button
+                    class="secondary-button"
+                    data-page="home"
+                    type="button"
+                >
+                    الرئيسية
+                </button>
 
             </div>
 
@@ -2931,6 +3694,7 @@ async function renderRanking() {
             <div class="error-state">
 
                 تعذر تحميل الترتيب حالياً.
+
                 <br>
 
                 ${escapeHTML(
@@ -2997,7 +3761,7 @@ function renderRankingItem(
                                     student.student_number
                                 )}
                             </small>
-                          `
+                        `
                         : ""
                 }
 
@@ -3022,10 +3786,8 @@ function renderProfile() {
     const name =
         studentName();
 
-
     const number =
         studentNumber();
-
 
     const specialization =
         getStudentValue(
@@ -3035,7 +3797,6 @@ function renderProfile() {
         ) ||
         "غير محدد";
 
-
     const points =
         Number(
             getStudentValue(
@@ -3044,7 +3805,6 @@ function renderProfile() {
                 "total_points"
             )
         ) || 0;
-
 
     const tests =
         Number(
@@ -3056,7 +3816,6 @@ function renderProfile() {
             )
         ) || 0;
 
-
     const correct =
         Number(
             getStudentValue(
@@ -3066,14 +3825,12 @@ function renderProfile() {
             )
         ) || 0;
 
-
     const note =
         getStudentValue(
             "note",
             "admin_note",
             "student_note"
         );
-
 
     const level =
         getStudentValue(
@@ -3193,7 +3950,6 @@ function renderProfile() {
                 ${
                     note
                         ? `
-
                             <div class="profile-note">
 
                                 <strong>
@@ -3205,8 +3961,7 @@ function renderProfile() {
                                 </p>
 
                             </div>
-
-                          `
+                        `
                         : ""
                 }
 
@@ -3219,7 +3974,6 @@ function renderProfile() {
                         type="button"
                     >
                         ${ICONS.logout}
-
                         تسجيل الخروج
                     </button>
 
@@ -3276,18 +4030,25 @@ function logout() {
         questionCount: 20,
 
         timer: null,
-        loading: false
+
+        loading: false,
+
+        lastResult: null
     };
 
 
     localStorage.removeItem(
-        "balsam_student"
+        STORAGE.student
     );
 
 
-    appScreen?.classList.add("hidden");
+    appScreen?.classList.add(
+        "hidden"
+    );
 
-    loginScreen?.classList.remove("hidden");
+    loginScreen?.classList.remove(
+        "hidden"
+    );
 
 
     if (studentNumberInput) {
@@ -3330,6 +4091,14 @@ document.addEventListener(
 
             const page =
                 pageButton.dataset.page;
+
+
+            if (
+                state.quiz.questions.length &&
+                state.currentPage === "quiz"
+            ) {
+                return;
+            }
 
 
             if (page === "subject") {
