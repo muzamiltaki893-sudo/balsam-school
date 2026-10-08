@@ -2,312 +2,473 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta
+        name="theme-color"
+        content="#07110f"
+    >
+
+    <meta
+        name="description"
+        content="منصة مدرسة البلسم الثانوية التعليمية"
+    >
 
     <title>مدرسة البلسم الثانوية</title>
-    <meta name="description" content="منصة مدرسة البلسم الثانوية التعليمية">
-    <meta name="theme-color" content="#071827">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- الخط -->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- إعداد Supabase الحالي -->
+    <script src="config.js"></script>
 
     <link rel="stylesheet" href="style.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script src="app.js" defer></script>
 </head>
 
 <body>
 
-<div class="background-effects">
-    <div class="glow glow-one"></div>
-    <div class="glow glow-two"></div>
-    <div class="grid-background"></div>
-</div>
+    <!-- =====================================================
+         الخلفية
+         ===================================================== -->
 
-<!-- =========================
-     LOGIN
-========================= -->
-<section id="loginScreen" class="login-screen">
-
-    <div class="login-layout">
-
-        <div class="login-intro">
-
-            <div class="brand-large">
-                <div class="brand-logo-wrap">
-                    <img src="assets/logo.png" alt="شعار مدرسة البلسم الثانوية">
-                </div>
-
-                <div>
-                    <span class="brand-small">EDUCATIONAL PLATFORM</span>
-                    <h1>مدرسة البلسم الثانوية</h1>
-                </div>
-            </div>
-
-            <div class="intro-content">
-                <span class="eyebrow">
-                    <span class="status-dot"></span>
-                    منصة تعليمية متطورة
-                </span>
-
-                <h2>
-                    تعلّم،
-                    <span>اختبر قدراتك،</span>
-                    وابنِ مستقبلك.
-                </h2>
-
-                <p>
-                    بيئة تعليمية رقمية تجمع المعرفة والاختبارات
-                    والمتابعة الأكاديمية في تجربة واحدة حديثة.
-                </p>
-            </div>
-
-            <div class="intro-features">
-                <div class="feature-chip">
-                    <span>01</span>
-                    مكتبة تعليمية
-                </div>
-
-                <div class="feature-chip">
-                    <span>02</span>
-                    اختبارات ذكية
-                </div>
-
-                <div class="feature-chip">
-                    <span>03</span>
-                    متابعة المستوى
-                </div>
-            </div>
-
-        </div>
-
-        <div class="login-card">
-
-            <div class="login-card-top">
-                <div class="login-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M20 21a8 8 0 0 0-16 0"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
-
-                <div>
-                    <span class="card-kicker">WELCOME BACK</span>
-                    <h2>تسجيل الدخول</h2>
-                    <p>أدخل بيانات حسابك للمتابعة</p>
-                </div>
-            </div>
-
-            <form id="loginForm" autocomplete="off">
-
-                <div class="form-group">
-                    <label for="studentNumber">رقم الطالب</label>
-
-                    <div class="input-wrap">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                            <path d="M7 8h10M7 12h6"></path>
-                        </svg>
-
-                        <input
-                            id="studentNumber"
-                            type="text"
-                            inputmode="numeric"
-                            placeholder="أدخل رقم الطالب"
-                            required
-                        >
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">كلمة المرور</label>
-
-                    <div class="input-wrap">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="4" y="10" width="16" height="10" rx="2"></rect>
-                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                        </svg>
-
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="أدخل كلمة المرور"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            id="togglePassword"
-                            class="input-action"
-                            aria-label="إظهار كلمة المرور"
-                        >
-                            <svg viewBox="0 0 24 24">
-                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
-                                <circle cx="12" cy="12" r="2.5"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="loginMessage" class="form-message hidden"></div>
-
-                <button id="loginButton" class="login-submit" type="submit">
-                    <span class="button-text">دخول إلى المنصة</span>
-
-                    <span class="button-loader">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
-
-                    <svg class="button-arrow" viewBox="0 0 24 24">
-                        <path d="M5 12h14M13 6l6 6-6 6"></path>
-                    </svg>
-                </button>
-
-            </form>
-
-            <div class="login-footer">
-                <span class="secure-dot"></span>
-                نظام دخول آمن ومحمي
-            </div>
-
-        </div>
+    <div class="site-background">
+        <div class="background-orb background-orb-one"></div>
+        <div class="background-orb background-orb-two"></div>
+        <div class="background-grid"></div>
     </div>
 
-</section>
 
+    <!-- =====================================================
+         شاشة تسجيل الدخول
+         ===================================================== -->
 
-<!-- =========================
-     APPLICATION
-========================= -->
-<section id="appScreen" class="app-screen hidden">
+    <section id="loginScreen" class="login-screen">
 
-    <header class="topbar">
+        <div class="login-shell">
 
-        <div class="topbar-inner">
+            <div class="login-brand">
 
-            <button class="brand-button" data-page="home" type="button">
+                <div class="logo-frame login-logo-frame">
+                    <div class="logo-glow"></div>
 
-                <div class="brand-logo-small">
-                    <img src="assets/logo.png" alt="شعار المدرسة">
+                    <img
+                        src="assets/logo.png"
+                        alt="شعار مدرسة البلسم الثانوية"
+                        class="school-logo"
+                    >
                 </div>
 
                 <div class="brand-text">
-                    <strong>مدرسة البلسم</strong>
-                    <span>منصتك التعليمية</span>
+                    <span class="brand-overline">
+                        منصة التعليم الرقمية
+                    </span>
+
+                    <h1>
+                        مدرسة البلسم الثانوية
+                    </h1>
+
+                    <p>
+                        بالعلم نصنع مستقبلاً أفضل
+                    </p>
                 </div>
 
-            </button>
-
-            <nav class="desktop-nav" aria-label="التنقل الرئيسي">
-
-                <button class="nav-button active" data-page="home" type="button">
-                    <svg viewBox="0 0 24 24">
-                        <path d="m3 10 9-7 9 7"></path>
-                        <path d="M5 9v11h14V9"></path>
-                        <path d="M9 20v-6h6v6"></path>
-                    </svg>
-                    <span>الرئيسية</span>
-                </button>
-
-                <button class="nav-button" data-page="library" type="button">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M4 5a2 2 0 0 1 2-2h13v17H6a2 2 0 0 1-2-2Z"></path>
-                        <path d="M4 5v13a2 2 0 0 0 2 2"></path>
-                        <path d="M8 7h7M8 11h7"></path>
-                    </svg>
-                    <span>المكتبة</span>
-                </button>
-
-                <button class="nav-button" data-page="ranking" type="button">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M8 21V10h4v11"></path>
-                        <path d="M4 21V14h4"></path>
-                        <path d="M12 21V6h4v15"></path>
-                        <path d="M16 21V3h4v18"></path>
-                    </svg>
-                    <span>الترتيب</span>
-                </button>
-
-                <button class="nav-button" data-page="profile" type="button">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 21a8 8 0 0 1 16 0"></path>
-                    </svg>
-                    <span>ملفي</span>
-                </button>
-
-            </nav>
-
-            <div class="topbar-student" id="studentChip">
-                <div class="student-avatar">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 21a8 8 0 0 1 16 0"></path>
-                    </svg>
-                </div>
-                <span class="student-chip-name">الطالب</span>
             </div>
+
+
+            <div class="login-card">
+
+                <div class="login-card-heading">
+                    <span class="eyebrow">
+                        دخول الطلاب
+                    </span>
+
+                    <h2>
+                        مرحباً بك
+                    </h2>
+
+                    <p>
+                        أدخل بيانات حسابك للوصول إلى منصتك التعليمية.
+                    </p>
+                </div>
+
+
+                <form id="loginForm" autocomplete="on">
+
+                    <div class="form-group">
+
+                        <label for="studentNumber">
+                            رقم الطالب
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M20 21a8 8 0 0 0-16 0"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+
+                            <input
+                                id="studentNumber"
+                                name="studentNumber"
+                                type="text"
+                                inputmode="numeric"
+                                autocomplete="username"
+                                placeholder="أدخل رقم الطالب"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            كلمة المرور
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect
+                                        x="4"
+                                        y="10"
+                                        width="16"
+                                        height="11"
+                                        rx="2"
+                                    />
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                                </svg>
+                            </span>
+
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                placeholder="أدخل كلمة المرور"
+                                required
+                            >
+
+                            <button
+                                id="togglePassword"
+                                class="password-toggle"
+                                type="button"
+                                aria-label="إظهار كلمة المرور"
+                            >
+                                <svg
+                                    class="eye-open"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
+                                    <circle cx="12" cy="12" r="2.5"/>
+                                </svg>
+
+                                <svg
+                                    class="eye-closed hidden"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="m3 3 18 18"/>
+                                    <path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17.8 17.8 0 0 1-3.1 3.8"/>
+                                    <path d="M6.6 6.7C3.7 8.4 2 12 2 12s3.5 6 10 6a9.8 9.8 0 0 0 4.1-.9"/>
+                                </svg>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="loginMessage"
+                        class="message-box hidden"
+                        role="alert"
+                    ></div>
+
+
+                    <button
+                        id="loginButton"
+                        class="login-button"
+                        type="submit"
+                    >
+                        <span class="button-label">
+                            دخول إلى المنصة
+                        </span>
+
+                        <span class="button-loader hidden"></span>
+
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M5 12h13"/>
+                            <path d="m13 6 6 6-6 6"/>
+                        </svg>
+                    </button>
+
+                </form>
+
+
+                <div class="contact-area">
+
+                    <div class="contact-heading">
+                        <span class="contact-line"></span>
+
+                        <span>
+                            تحتاج إلى مساعدة؟
+                        </span>
+
+                        <span class="contact-line"></span>
+                    </div>
+
+
+                    <div class="contact-links">
+
+                        <a
+                            href="mailto:muzamiltaki893@gmail.com"
+                            class="contact-link"
+                        >
+                            <span class="contact-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 5h16v14H4z"/>
+                                    <path d="m4 7 8 6 8-6"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                <strong>الإشراف</strong>
+                                <small>
+                                    التواصل مع الإشراف
+                                </small>
+                            </span>
+                        </a>
+
+
+                        <a
+                            href="mailto:samiassadig@gmail.com"
+                            class="contact-link"
+                        >
+                            <span class="contact-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 3a9 9 0 1 0 9 9"/>
+                                    <path d="M12 7v5l3 2"/>
+                                    <path d="M16 3h5v5"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                <strong>الدعم الفني</strong>
+                                <small>
+                                    المساعدة التقنية
+                                </small>
+                            </span>
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <footer class="login-footer">
+                جميع الحقوق محفوظة لمدرسة البلسم الثانوية
+            </footer>
 
         </div>
 
-    </header>
+    </section>
 
 
-    <main id="appContent" class="app-content"></main>
+    <!-- =====================================================
+         التطبيق
+         ===================================================== -->
+
+    <section id="appScreen" class="app-screen hidden">
+
+        <!-- الهيدر -->
+
+        <header class="app-header">
+
+            <div class="header-inner">
+
+                <button
+                    class="header-brand"
+                    data-page="home"
+                    type="button"
+                    aria-label="الرئيسية"
+                >
+
+                    <span class="header-logo">
+                        <img
+                            src="assets/logo.png"
+                            alt="شعار مدرسة البلسم الثانوية"
+                        >
+                    </span>
+
+                    <span class="header-brand-text">
+
+                        <strong>
+                            مدرسة البلسم الثانوية
+                        </strong>
+
+                        <small>
+                            منصة التعليم
+                        </small>
+
+                    </span>
+
+                </button>
 
 
-    <nav class="mobile-nav">
+                <div class="header-student">
 
-        <button class="nav-button active" data-page="home" type="button">
-            <svg viewBox="0 0 24 24">
-                <path d="m3 10 9-7 9 7"></path>
-                <path d="M5 9v11h14V9"></path>
-                <path d="M9 20v-6h6v6"></path>
-            </svg>
-            <span>الرئيسية</span>
-        </button>
+                    <span class="header-student-text">
 
-        <button class="nav-button" data-page="library" type="button">
-            <svg viewBox="0 0 24 24">
-                <path d="M4 5a2 2 0 0 1 2-2h13v17H6a2 2 0 0 1-2-2Z"></path>
-                <path d="M8 7h7M8 11h7"></path>
-            </svg>
-            <span>المكتبة</span>
-        </button>
+                        <small>
+                            مرحباً
+                        </small>
 
-        <button class="nav-button" data-page="ranking" type="button">
-            <svg viewBox="0 0 24 24">
-                <path d="M8 21V10h4v11"></path>
-                <path d="M4 21V14h4"></path>
-                <path d="M12 21V6h4v15"></path>
-                <path d="M16 21V3h4v18"></path>
-            </svg>
-            <span>الترتيب</span>
-        </button>
+                        <strong
+                            id="headerStudentName"
+                            class="header-student-name"
+                        >
+                            الطالب
+                        </strong>
 
-        <button class="nav-button" data-page="profile" type="button">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 21a8 8 0 0 1 16 0"></path>
-            </svg>
-            <span>ملفي</span>
-        </button>
+                    </span>
 
-    </nav>
+                    <span
+                        id="studentChip"
+                        class="student-chip"
+                    >
+                        <span class="student-chip-dot"></span>
+
+                        <span class="student-chip-name">
+                            الطالب
+                        </span>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </header>
 
 
-    <footer class="app-footer">
-        <span>مدرسة البلسم الثانوية</span>
-        <span class="footer-separator">•</span>
-        <span>منصة تعليمية رقمية</span>
-    </footer>
+        <!-- المحتوى -->
 
-</section>
+        <main
+            id="appContent"
+            class="app-content"
+        ></main>
+
+
+        <!-- التنقل السفلي للموبايل -->
+
+        <nav class="mobile-nav">
+
+            <button
+                class="mobile-nav-item active"
+                data-page="home"
+                type="button"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m3 10 9-7 9 7"/>
+                    <path d="M5 9v11h14V9"/>
+                    <path d="M9 20v-6h6v6"/>
+                </svg>
+
+                <span>الرئيسية</span>
+            </button>
+
+
+            <button
+                class="mobile-nav-item"
+                data-page="library"
+                type="button"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/>
+                    <path d="M4 5.5v16"/>
+                    <path d="M8 7h8"/>
+                    <path d="M8 11h8"/>
+                </svg>
+
+                <span>المكتبة</span>
+            </button>
+
+
+            <button
+                class="mobile-nav-item"
+                data-page="ranking"
+                type="button"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 21h8"/>
+                    <path d="M12 17v4"/>
+                    <path d="M6 4h12v5a6 6 0 0 1-12 0z"/>
+                    <path d="M6 7H3a4 4 0 0 0 4 4"/>
+                    <path d="M18 7h3a4 4 0 0 1-4 4"/>
+                    <path d="M9 3h6"/>
+                </svg>
+
+                <span>الترتيب</span>
+            </button>
+
+
+            <button
+                class="mobile-nav-item"
+                data-page="profile"
+                type="button"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 21a8 8 0 0 1 16 0"/>
+                </svg>
+
+                <span>ملفي</span>
+            </button>
+
+        </nav>
+
+
+        <footer class="app-footer">
+            جميع الحقوق محفوظة لمدرسة البلسم الثانوية
+        </footer>
+
+    </section>
+
+
+    <!-- =====================================================
+         JavaScript
+         ===================================================== -->
+
+    <script src="app.js" defer></script>
 
 </body>
     </html>
