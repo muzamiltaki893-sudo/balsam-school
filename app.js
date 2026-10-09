@@ -1,3 +1,4 @@
+
 "use strict";
 
 /* =========================================================
@@ -47,6 +48,9 @@ const state = {
 
     student: null,
 
+    // كلمة المرور موجودة في الذاكرة فقط، ولا تُحفظ في التخزين المحلي.
+    studentPassword: null,
+
     subjects: [],
     posts: [],
     notice: null,
@@ -68,6 +72,7 @@ const state = {
 
         timer: null,
         loading: false,
+        finishing: false,
 
         lastResult: null
     }
@@ -427,11 +432,11 @@ function studentNumber() {
 
     return (
         getStudentValue(
-            "studentNumber",
             "student_number",
+            "studentNumber",
             "number"
         ) ||
-        "—"
+        ""
     );
 }
 
@@ -504,14 +509,23 @@ function saveLocalProgress() {
                 getStudentValue(
                     "id",
                     "student_id",
-                    "studentNumber",
-                    "student_number"
+                    "student_number",
+                    "studentNumber"
                 )
             );
 
         if (!id) {
             return;
         }
+
+        const points =
+            Number(
+                getStudentValue(
+                    "points",
+                    "total_points",
+                    "score"
+                )
+            ) || 0;
 
         const progress =
             getLocalProgress();
@@ -526,18 +540,12 @@ function saveLocalProgress() {
             name:
                 studentName(),
 
-            points:
-                Number(
-                    getStudentValue(
-                        "points",
-                        "score",
-                        "total_points"
-                    )
-                ) || 0,
+            points,
 
             tests:
                 Number(
                     getStudentValue(
+                        "tests_count",
                         "tests",
                         "test_count",
                         "completed_tests",
@@ -548,8 +556,8 @@ function saveLocalProgress() {
             correct:
                 Number(
                     getStudentValue(
-                        "correct",
                         "correct_answers",
+                        "correct",
                         "total_correct"
                     )
                 ) || 0,
@@ -557,26 +565,14 @@ function saveLocalProgress() {
             wrong:
                 Number(
                     getStudentValue(
-                        "wrong",
                         "wrong_answers",
+                        "wrong",
                         "total_wrong"
                     )
                 ) || 0,
 
             level:
-                getStudentValue(
-                    "level",
-                    "student_level"
-                ) ||
-                calculateLevel(
-                    Number(
-                        getStudentValue(
-                            "points",
-                            "score",
-                            "total_points"
-                        )
-                    ) || 0
-                ),
+                calculateLevel(points),
 
             updatedAt:
                 new Date().toISOString()
@@ -640,8 +636,8 @@ function saveLocalResult(result) {
                 getStudentValue(
                     "id",
                     "student_id",
-                    "studentNumber",
-                    "student_number"
+                    "student_number",
+                    "studentNumber"
                 )
             );
 
@@ -666,10 +662,7 @@ function saveLocalResult(result) {
 
         results.unshift(backup);
 
-        /*
-         * نحتفظ بآخر 50 نتيجة فقط
-         * حتى لا يمتلئ localStorage.
-         */
+        // الاحتفاظ بآخر 50 نتيجة فقط.
 
         const limited =
             results.slice(0, 50);
@@ -693,11 +686,22 @@ function saveStudentLocalSnapshot() {
 
     try {
 
+        if (!state.student) {
+            return;
+        }
+
+        // لا نحفظ كلمة المرور أو أي حقل حساس ضمن نسخة الطالب.
+        const snapshot = {
+            ...state.student
+        };
+
+        delete snapshot.password;
+        delete snapshot.studentPassword;
+        delete snapshot.password_hash;
+
         localStorage.setItem(
             STORAGE.student,
-            JSON.stringify(
-                state.student
-            )
+            JSON.stringify(snapshot)
         );
 
         saveLocalProgress();
@@ -811,6 +815,13 @@ async function handleLogin(event) {
 
         state.student = student;
 
+        // تُستخدم كلمة المرور في الذاكرة فقط أثناء الجلسة.
+        state.studentPassword = password;
+
+        if (passwordInput) {
+            passwordInput.value = "";
+        }
+
         saveStudentLocalSnapshot();
 
         await showApplication();
@@ -821,6 +832,9 @@ async function handleLogin(event) {
             "Login error:",
             error
         );
+
+        state.student = null;
+        state.studentPassword = null;
 
         showMessage(
             error?.message ||
@@ -840,39 +854,21 @@ async function handleLogin(event) {
 
 function restoreSession() {
 
-    try {
+    /*
+     * لا نعتبر بيانات localStorage إثباتًا لتسجيل الدخول.
+     * يجب على الطالب تسجيل الدخول مجددًا بعد إعادة تحميل الصفحة.
+     * تبقى النسخ الاحتياطية للتقدم والنتائج دون تغيير.
+     */
 
-        const saved =
-            localStorage.getItem(
-                STORAGE.student
-            );
+    state.student = null;
+    state.studentPassword = null;
 
-        if (!saved) {
-            return;
-        }
+    localStorage.removeItem(
+        STORAGE.student
+    );
 
-        const student =
-            JSON.parse(saved);
-
-        if (!student) {
-            return;
-        }
-
-        state.student = student;
-
-        showApplication();
-
-    } catch (error) {
-
-        console.warn(
-            "Could not restore session:",
-            error
-        );
-
-        localStorage.removeItem(
-            STORAGE.student
-        );
-    }
+    appScreen?.classList.add("hidden");
+    loginScreen?.classList.remove("hidden");
 }
 
 
@@ -882,7 +878,10 @@ function restoreSession() {
 
 async function showApplication() {
 
-    if (!state.student) {
+    if (
+        !state.student ||
+        !state.studentPassword
+    ) {
         return;
     }
 
@@ -1197,14 +1196,15 @@ function renderHome() {
         Number(
             getStudentValue(
                 "points",
-                "score",
-                "total_points"
+                "total_points",
+                "score"
             )
         ) || 0;
 
     const tests =
         Number(
             getStudentValue(
+                "tests_count",
                 "tests",
                 "test_count",
                 "completed_tests",
@@ -1215,8 +1215,8 @@ function renderHome() {
     const correct =
         Number(
             getStudentValue(
-                "correct",
                 "correct_answers",
+                "correct",
                 "total_correct"
             )
         ) || 0;
@@ -2147,6 +2147,7 @@ async function startPartQuiz(
         timer: null,
 
         loading: true,
+        finishing: false,
 
         lastResult: null
     };
@@ -2633,6 +2634,13 @@ function stopQuizTimer() {
 
 function selectAnswer(answer) {
 
+    if (
+        state.quiz.finishing ||
+        state.currentPage !== "quiz"
+    ) {
+        return;
+    }
+
     state.quiz.answers[
         state.quiz.index
     ] = answer;
@@ -2642,6 +2650,10 @@ function selectAnswer(answer) {
 
 
 function nextQuestion() {
+
+    if (state.quiz.finishing) {
+        return;
+    }
 
     const total =
         state.quiz.questions.length;
@@ -2665,6 +2677,10 @@ function nextQuestion() {
 
 
 function quitQuiz() {
+
+    if (state.quiz.finishing) {
+        return;
+    }
 
     const confirmed =
         window.confirm(
@@ -2695,6 +2711,7 @@ function quitQuiz() {
         timer: null,
 
         loading: false,
+        finishing: false,
 
         lastResult: null
     };
@@ -2715,11 +2732,14 @@ async function finishQuiz(
 ) {
 
     if (
-        !state.quiz.questions.length
+        !state.quiz.questions.length ||
+        state.quiz.finishing
     ) {
         return;
     }
 
+    // يمنع التسليم المزدوج عند تزامن المؤقت والضغط.
+    state.quiz.finishing = true;
 
     stopQuizTimer();
 
@@ -2871,16 +2891,10 @@ async function finishQuiz(
         result;
 
 
-    /*
-     * نحفظ نسخة محلية كاملة من التقرير
-     * قبل محاولة الاتصال بـ Supabase.
-     */
+    // حفظ نسخة احتياطية محلية قبل محاولة الاتصال بقاعدة البيانات.
     saveLocalResult(result);
 
 
-    /*
-     * حفظ نتيجة الاختبار في Supabase.
-     */
     const saved =
         await saveTestResult(result);
 
@@ -2889,18 +2903,9 @@ async function finishQuiz(
         saved;
 
 
-    /*
-     * الاحتفاظ بالنتيجة كاملة في الذاكرة
-     * حتى يستطيع الطالب رؤية التقرير.
-     */
     state.quiz.lastResult =
         result;
 
-
-    /*
-     * لا نحذف الأسئلة من التقرير.
-     * نحذفها من حالة الاختبار فقط.
-     */
     state.quiz.questions = [];
 
     state.currentPage = "result";
@@ -2915,7 +2920,15 @@ async function finishQuiz(
 
 async function saveTestResult(result) {
 
-    if (!sb || !state.student) {
+    if (
+        !sb ||
+        !state.student ||
+        !state.studentPassword
+    ) {
+
+        console.warn(
+            "Supabase أو بيانات جلسة الطالب غير متوفرة."
+        );
 
         saveLocalProgress();
 
@@ -2923,17 +2936,17 @@ async function saveTestResult(result) {
     }
 
 
-    const studentId =
-        getStudentValue(
-            "id",
-            "student_id"
-        );
+    const number =
+        studentNumber();
+
+    const password =
+        state.studentPassword;
 
 
-    if (!studentId) {
+    if (!number || number === "—") {
 
         console.warn(
-            "Student ID is missing; result not saved."
+            "Student number is missing; result not saved."
         );
 
         saveLocalProgress();
@@ -2944,14 +2957,26 @@ async function saveTestResult(result) {
 
     try {
 
+        /*
+         * الدالة الموجودة في قاعدة البيانات تستقبل:
+         * p_student_number وp_password، وليس p_student_id.
+         *
+         * يجب أن يساوي مجموع الصحيحة والخاطئة إجمالي الأسئلة.
+         * لذلك تُرسل الأسئلة غير المجابة ضمن p_wrong_answers
+         * في إحصاءات قاعدة البيانات، مع إبقائها منفصلة في التقرير.
+         */
+
         const {
             error
         } = await sb.rpc(
             "submit_test_result",
             {
 
-                p_student_id:
-                    studentId,
+                p_student_number:
+                    number,
+
+                p_password:
+                    password,
 
                 p_subject:
                     result.subject,
@@ -2960,7 +2985,7 @@ async function saveTestResult(result) {
                     result.part,
 
                 p_score:
-                    result.score,
+                    result.correctAnswers,
 
                 p_total_questions:
                     result.totalQuestions,
@@ -2969,7 +2994,8 @@ async function saveTestResult(result) {
                     result.correctAnswers,
 
                 p_wrong_answers:
-                    result.wrongAnswers,
+                    result.totalQuestions -
+                    result.correctAnswers,
 
                 p_duration_seconds:
                     result.durationSeconds
@@ -2983,68 +3009,99 @@ async function saveTestResult(result) {
 
 
         /*
-         * تحديث البيانات المحلية بعد نجاح
-         * الحفظ في Supabase.
+         * النتيجة حُفظت بالفعل في قاعدة البيانات.
+         * نعيد جلب الطالب لتحديث النقاط والإحصاءات من المصدر.
          */
 
-        const currentPoints =
-            Number(
-                getStudentValue(
-                    "points",
-                    "score",
-                    "total_points"
-                )
-            ) || 0;
+        try {
+
+            const refreshedStudent =
+                await loginStudent(
+                    number,
+                    password
+                );
+
+            state.student =
+                refreshedStudent;
+
+        } catch (refreshError) {
+
+            /*
+             * إذا نجح حفظ النتيجة وفشل جلب بيانات الطالب،
+             * لا نعيد إرسال الاختبار؛ حتى لا تتكرر النقاط.
+             * نحدّث نسخة الذاكرة مؤقتاً حتى المحاولة التالية.
+             */
+
+            console.warn(
+                "Result saved, but refreshing student data failed:",
+                refreshError
+            );
+
+            const currentPoints =
+                Number(
+                    getStudentValue(
+                        "points",
+                        "total_points",
+                        "score"
+                    )
+                ) || 0;
 
 
-        const currentTests =
-            Number(
-                getStudentValue(
-                    "tests",
-                    "test_count",
-                    "completed_tests",
-                    "total_tests"
-                )
-            ) || 0;
+            const currentTests =
+                Number(
+                    getStudentValue(
+                        "tests_count",
+                        "tests",
+                        "test_count",
+                        "completed_tests",
+                        "total_tests"
+                    )
+                ) || 0;
 
 
-        const currentCorrect =
-            Number(
-                getStudentValue(
-                    "correct",
-                    "correct_answers",
-                    "total_correct"
-                )
-            ) || 0;
+            const currentCorrect =
+                Number(
+                    getStudentValue(
+                        "correct_answers",
+                        "correct",
+                        "total_correct"
+                    )
+                ) || 0;
 
 
-        const currentWrong =
-            Number(
-                getStudentValue(
-                    "wrong",
-                    "wrong_answers",
-                    "total_wrong"
-                )
-            ) || 0;
+            const currentWrong =
+                Number(
+                    getStudentValue(
+                        "wrong_answers",
+                        "wrong",
+                        "total_wrong"
+                    )
+                ) || 0;
 
 
-        state.student.points =
-            currentPoints +
-            result.score;
+            state.student = {
 
+                ...state.student,
 
-        state.student.tests =
-            currentTests + 1;
+                points:
+                    currentPoints +
+                    result.score,
 
+                tests_count:
+                    currentTests + 1,
 
-        state.student.correct =
-            currentCorrect +
-            result.correctAnswers;
+                correct_answers:
+                    currentCorrect +
+                    result.correctAnswers,
 
-
-        state.student.wrong =
-            currentWrong +
-            result.wrongAnswers;
+                wrong_answers:
+                    currentWrong +
+                    (
+                        result.totalQuestions -
+                        result.correctAnswers
+                    )
+            };
+        }
 
 
         saveStudentLocalSnapshot();
@@ -3064,9 +3121,8 @@ async function saveTestResult(result) {
 
 
         /*
-         * النتيجة الكاملة محفوظة محلياً بالفعل.
-         * لذلك لا تضيع نتيجة الطالب إذا انقطع
-         * الإنترنت أو حدث خطأ في Supabase.
+         * النتيجة موجودة في النسخة الاحتياطية المحلية،
+         * لكن هذا لا يعني أنها حُفظت في قاعدة البيانات.
          */
 
         saveLocalProgress();
@@ -3648,6 +3704,11 @@ async function renderRanking() {
             $("#rankingContainer");
 
 
+        if (!container) {
+            return;
+        }
+
+
         if (!ranking.length) {
 
             container.innerHTML = `
@@ -3689,21 +3750,26 @@ async function renderRanking() {
         );
 
 
-        $("#rankingContainer").innerHTML = `
+        const container =
+            $("#rankingContainer");
 
-            <div class="error-state">
+        if (container) {
+            container.innerHTML = `
 
-                تعذر تحميل الترتيب حالياً.
+                <div class="error-state">
 
-                <br>
+                    تعذر تحميل الترتيب حالياً.
 
-                ${escapeHTML(
-                    error?.message ||
-                    "حدث خطأ غير معروف."
-                )}
+                    <br>
 
-            </div>
-        `;
+                    ${escapeHTML(
+                        error?.message ||
+                        "حدث خطأ غير معروف."
+                    )}
+
+                </div>
+            `;
+        }
     }
 }
 
@@ -3801,14 +3867,15 @@ function renderProfile() {
         Number(
             getStudentValue(
                 "points",
-                "score",
-                "total_points"
+                "total_points",
+                "score"
             )
         ) || 0;
 
     const tests =
         Number(
             getStudentValue(
+                "tests_count",
                 "tests",
                 "test_count",
                 "completed_tests",
@@ -3819,8 +3886,8 @@ function renderProfile() {
     const correct =
         Number(
             getStudentValue(
-                "correct",
                 "correct_answers",
+                "correct",
                 "total_correct"
             )
         ) || 0;
@@ -3832,11 +3899,8 @@ function renderProfile() {
             "student_note"
         );
 
+    // المستوى المعروض مشتق من النقاط لتجنب عرض رقم المستوى الداخلي.
     const level =
-        getStudentValue(
-            "level",
-            "student_level"
-        ) ||
         calculateLevel(points);
 
 
@@ -4013,9 +4077,12 @@ function logout() {
     stopQuizTimer();
 
     state.student = null;
+    state.studentPassword = null;
 
     state.currentSubject = null;
     state.currentPart = null;
+
+    state.currentPage = "home";
 
     state.quiz = {
 
@@ -4032,6 +4099,7 @@ function logout() {
         timer: null,
 
         loading: false,
+        finishing: false,
 
         lastResult: null
     };
@@ -4078,8 +4146,14 @@ document.addEventListener(
     "click",
     async event => {
 
+        const target = event.target;
+
+        if (!(target instanceof Element)) {
+            return;
+        }
+
         const pageButton =
-            event.target.closest(
+            target.closest(
                 "[data-page]"
             );
 
@@ -4118,7 +4192,7 @@ document.addEventListener(
 
 
         const openSubject =
-            event.target.closest(
+            target.closest(
                 '[data-action="open-subject"]'
             );
 
@@ -4159,7 +4233,7 @@ document.addEventListener(
 
 
         const startQuizButton =
-            event.target.closest(
+            target.closest(
                 '[data-action="start-quiz"]'
             );
 
@@ -4205,7 +4279,7 @@ document.addEventListener(
 
 
         const answerButton =
-            event.target.closest(
+            target.closest(
                 '[data-action="select-answer"]'
             );
 
@@ -4221,7 +4295,7 @@ document.addEventListener(
 
 
         const nextButton =
-            event.target.closest(
+            target.closest(
                 '[data-action="next-question"]'
             );
 
@@ -4235,7 +4309,7 @@ document.addEventListener(
 
 
         const quitButton =
-            event.target.closest(
+            target.closest(
                 '[data-action="quit-quiz"]'
             );
 
@@ -4249,7 +4323,7 @@ document.addEventListener(
 
 
         const logoutButton =
-            event.target.closest(
+            target.closest(
                 '[data-action="logout"]'
             );
 
